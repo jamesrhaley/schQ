@@ -1,26 +1,19 @@
-var Emitter = require('./emitter');
+import Rx from 'rx';
 
-var emitter = new Emitter();
-
-var subcription = emitter.listen('data', function (data) {
-    console.log('data: ' + data);
-});
-
-emitter.emit('data', 'foo');
-// => data: foo
-
-// Destroy the subscription
-subcription.dispose();
-
-function waitAndListen(num) {
+function waitAndListen(listenTo, key, times) {
   return Rx.Observable.create(observer => {
-    var count 
-    var emitter = new Emitter();
-    var subcription = emitter.listen('data', function (data) {
-      observer.onNext('data: ' + data);
-      observer.onCompleted()
+    var count = 0;
+    
+    var subcription = listenTo.listen(key, (data) => {
+      count += 1;
+      if (count === times) {
+        observer.onNext(key+': finished');
+        observer.onCompleted()
+      }
     });
 
     return () => subcription.dispose();
   });
 }
+
+export default waitAndListen;

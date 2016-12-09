@@ -3,4 +3,4 @@ function objToArray(obj) {
   return keys.map(key => obj[key]);
 }
 
-module.exports = objToArray;
+export default objToArray;

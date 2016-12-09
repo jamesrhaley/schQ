@@ -1,5 +1,5 @@
-var Rx = require('rx');
-var objToArray = require('./../util');
+import Rx from 'rx';
+import objToArray from './../util';
 
 function waitFor(num){
   return Rx.Observable.create(observer => {
@@ -29,4 +29,4 @@ function waitFor(num){
   });                 
 }
 
-module.exports = waitFor;
+export default waitFor;

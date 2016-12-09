@@ -1,7 +1,5 @@
-'use strict';
-
-var expect = require('chai').expect;
-var love = require('./index');
+import {expect} from 'chai';
+import love from './index';
 
 describe('something', function() {
   it('should work', function() {

@@ -1,5 +1,5 @@
-var Rx = require('rx');
-
+import Rx from 'rx';
+// taken from rxjs api and https://github.com/stylelab-io/event-emitter-rx/blob/master/EventEmitterRx.js
 var hasOwnProp = {}.hasOwnProperty;
 
 function createName (name) {
@@ -12,17 +12,19 @@ function Emitter() {
 
 Emitter.prototype.emit = function (name, data) {
   var fnName = createName(name);
-  console.log('emit',fnName);
 
   this.subjects[fnName] || (this.subjects[fnName] = new Rx.Subject());
   this.subjects[fnName].onNext(data);
 
-  console.log('subjects',this.subjects);
+};
+
+Emitter.prototype.hasObserver = function (name) {
+  return this.subjects[name] !== undefined && this.subjects[name].hasObservers();
 };
 
 Emitter.prototype.listen = function (name, handler) {
   var fnName = createName(name);
-  console.log('listen',fnName);
+
   this.subjects[fnName] || (this.subjects[fnName] = new Rx.Subject());
   return this.subjects[fnName].subscribe(handler);
 };
@@ -38,4 +40,14 @@ Emitter.prototype.dispose = function () {
   this.subjects = {};
 };
 
-module.exports = Emitter;
+Emitter.prototype.disposeAll = function () {
+  var subjects = this.subjects;
+  for (var prop in subjects) {
+    if (hasOwnProp.call(subjects, prop)) {
+      subjects[prop].dispose();
+    }
+  }
+  this.subjects = {};
+};
+
+export default Emitter;

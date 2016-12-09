@@ -1,15 +1,21 @@
-'use strict';
+import {expect} from 'chai';
+import Rx from 'rx';
+import waitFor from './waitFor';
 
-var expect = require('chai').expect;
-var waitFor = require('./waitFor');
+const asynTest = (val => {
+   describe('waitFor', function() {
+    it('should return true after awhile', function() {
+      expect(val).to.be.true;
+    })
+  }) 
+})
+
 
 waitFor(4)
   .subscribe(val => {
-    console.log(val);
+
+    asynTest(val)
+
+    run();
+
   });
-  
-describe('something', function() {
-  it('should work', function() {
-    expect(true).to.be.true;
-  })
-})
