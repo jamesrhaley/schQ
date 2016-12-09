@@ -4,11 +4,11 @@ function waitAndListen(listenTo, key, times) {
   return Rx.Observable.create(observer => {
     var count = 0;
     
-    var subcription = listenTo.listen(key, (data) => {
+    var subcription = listenTo.listen(key, () => {
       count += 1;
       if (count === times) {
         observer.onNext(key+': finished');
-        observer.onCompleted()
+        observer.onCompleted();
       }
     });
 
