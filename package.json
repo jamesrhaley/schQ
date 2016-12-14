@@ -38,25 +38,26 @@
     "rimraf": "2.5.4"
   },
   "nyc": {
-    "check-coverage": "true",
-    "branches": "100",
-    "functions": "100",
-    "lines": "100",
-    "statements": "100",
+    "all": true,
+    "check-coverage": true,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100,
+    "statements": 100,
     "reporter": [
       "text",
       "lcov"
+    ],
+    "instrument": false,
+    "sourceMap": false,
+    "require": [
+      "babel-register"
     ],
     "extension": [
       ".es6"
     ],
     "include": [
       "src"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "sourceMap": false,
-    "instrument": false
+    ]
   }
 }

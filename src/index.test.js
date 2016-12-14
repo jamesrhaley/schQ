@@ -1,17 +1,9 @@
 import {expect} from 'chai';
+import main from './index';
 
-describe('basic async test', function(){  
-  let foo = false;
+describe('Is an object', () => {
 
-  before(function(done){
-    setTimeout(function(){
-      foo = true;
-
-      done();
-    }, 1000);
-  });
-
-  it('should pass', function(){   
-    expect(foo).equals(true);
+  it('type of main is Object', () => {
+    expect(typeof main === 'object').to.be.true;
   });
 });

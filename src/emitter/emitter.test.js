@@ -47,7 +47,7 @@ describe('emitter', () => {
     emitter.disposeAll();
 
     allEmittersRemoved = emitter.listObservers();
-    
+
     done();
   });
 
@@ -73,7 +73,13 @@ describe('emitter', () => {
       .to.eql(['$data2', '$data3']);
   });
 
-  it('no emitters should remain', () => {
+  it('No emitters should remain', () => {
     expect(allEmittersRemoved).to.eql([]);
+  });
+
+  it('Emitter should throw error', () => {
+    const str = 'Must asign a listener before you can emit.';
+
+    expect(() => emitter.emit('data4')).to.throw(str);
   });
 });

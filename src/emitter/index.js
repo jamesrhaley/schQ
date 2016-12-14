@@ -1,6 +1,7 @@
 import Rx from 'rx';
 // mostly taken from https://github.com/stylelab-io/event-emitter-rx/blob/master/EventEmitterRx.js
 const hasOwnProp = {}.hasOwnProperty;
+const str = 'Must asign a listener before you can emit.';
 
 function createName(name) {
   return '$' + name;
@@ -23,7 +24,7 @@ Emitter.prototype.emit = function (name, data) {
   const fnName = createName(name);
 
   if (!this.hasObserver(fnName)) {
-    this.subjects[fnName] = new Rx.Subject();
+    throw new Error(str);
   }
 
   this.subjects[fnName].onNext(data);
