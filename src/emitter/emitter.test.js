@@ -8,8 +8,7 @@ describe('emitter', () => {
     oneEmitterGone, allEmittersRemoved;
 
   
-  before(function(done){
-    
+  before(function (done){
     // set one subject listener
     emitter.listen('data', function (data) {
       value = 'data: ' + data;
@@ -77,9 +76,26 @@ describe('emitter', () => {
     expect(allEmittersRemoved).to.eql([]);
   });
 
-  it('Emitter should throw error', () => {
+  it('Emit should throw error', () => {
     const str = 'Must asign a listener before you can emit.';
 
     expect(() => emitter.emit('data4')).to.throw(str);
+  });
+
+  it('Listen should throw error', () => {
+    const str = 'Keys can not have multiple handlers';
+
+    let first = emitter;
+    let second = emitter;
+
+    first.listen('data', function (data) {
+      value = 'data: ' + data;
+    });
+
+    expect(() => 
+      second.listen('data', function (data) {
+        value = 'mydata: ' + data;
+      })
+    ).to.throw(str);
   });
 });

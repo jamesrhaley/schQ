@@ -1,12 +1,14 @@
 import Rx from 'rx';
-// mostly taken from https://github.com/stylelab-io/event-emitter-rx/blob/master/EventEmitterRx.js
-const hasOwnProp = {}.hasOwnProperty;
-const str = 'Must asign a listener before you can emit.';
+// partially taken from https://github.com/stylelab-io/event-emitter-rx/blob/master/EventEmitterRx.js
+
+const emitError = 'Must asign a listener before you can emit.';
+const listenError = 'Keys can not have multiple handlers';
 
 function createName(name) {
   return '$' + name;
 }
 
+// as of right now Subjects are hot
 function Emitter() {
   this.subjects = {};
 }
@@ -24,18 +26,22 @@ Emitter.prototype.emit = function (name, data) {
   const fnName = createName(name);
 
   if (!this.hasObserver(fnName)) {
-    throw new Error(str);
+    
+    throw new Error(emitError);
   }
 
   this.subjects[fnName].onNext(data);
-
 };
 
 Emitter.prototype.listen = function (name, handler) {
   const fnName = createName(name);
 
   if (!this.hasObserver(fnName)) {
+
     this.subjects[fnName] = new Rx.Subject();
+  } else {
+
+    throw new Error(listenError);
   }
 
   return this.subjects[fnName].subscribe(handler);
@@ -59,13 +65,11 @@ Emitter.prototype.dispose = function (name) {
 
 Emitter.prototype.disposeAll = function () {
   const subjects = this.subjects;
+  const keys = Object.keys(subjects);
 
-  for (let prop in subjects) {
-
-    if (hasOwnProp.call(subjects, prop)) {
-      subjects[prop].dispose();
-    }
-  }
+  keys.forEach(key => {
+    subjects[key].dispose();
+  });
 
   this.subjects = {};
 };

@@ -5,7 +5,7 @@ import waitAndListen from './index';
 const emitter = new Emitter();
 const randomTime = () => Math.random()*1000;
 
-describe('waitForListen', function (){  
+describe('waitForListen', function () {  
   let result1 = undefined;
   let result2 = undefined;
 
@@ -54,7 +54,7 @@ describe('waitForListen', function (){
     // then call done
     let time = 0;
     let interval = 250;
-    let testInterval = setInterval(()=>{
+    let testInterval = setInterval(() => {
       if (result1 !== undefined && result2 !== undefined){
 
         clearInterval(testInterval);
@@ -72,15 +72,15 @@ describe('waitForListen', function (){
     }, interval);
   });
 
-  it('1 should return "data1: finished"', function (){
+  it('1 should return "data1: finished"', function () {
     expect(result1).to.equal('data1: finished');
   });
 
-  it('2 should return "data2: finished"', function (){
+  it('2 should return "data2: finished"', function () {
     expect(result2).to.equal('data2: finished');
   });
 
-  it('Emitter should be empty"', function (){
+  it('Emitter should be empty"', function () {
     expect(emitter.listObservers()).to.eql([]);
   });
 });

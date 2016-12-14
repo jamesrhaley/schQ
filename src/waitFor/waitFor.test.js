@@ -1,10 +1,10 @@
 import {expect} from 'chai';
 import waitFor from './index';
 
-describe('waitFor', function (){  
+describe('waitFor', function () {  
   let result = false;
 
-  before(function (done){
+  before(function (done) {
 
     this.timeout(0);
 
@@ -17,7 +17,7 @@ describe('waitFor', function (){
       });
   });
 
-  it('should return true after awhile', function (){
+  it('should return true after awhile', function () {
     expect(result).to.be.true;
   });
 });

@@ -15,7 +15,7 @@ function waitFor(num){
     
     const all = Rx.Observable
       .concat(objToArray(watchers))
-      .subscribe(()=> {
+      .subscribe(() => {
         
         count++;
 
