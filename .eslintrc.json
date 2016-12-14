@@ -28,6 +28,18 @@
             "error",
             "always"
         ],
-        "no-console": "off"
+        "no-console": [
+            "error", 
+            { "allow": [
+                "warn", 
+                "error"
+                ] 
+            }
+        ],
+        "vars-on-top": "error",
+        "no-return-assign": "error",
+        "max-depth": [
+            "error", 4
+        ]
     }
 }

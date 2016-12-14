@@ -1,18 +1,23 @@
 import {expect} from 'chai';
-import waitFor from './waitFor';
+import waitFor from './index';
 
-const asynTest = (val => {
-  describe('waitFor', () => {
-    it('should return true after awhile', () => {
-      expect(val).to.be.true;
-    });
+describe('waitFor', function (){  
+  let result = false;
+
+  before(function (done){
+
+    this.timeout(0);
+
+    waitFor(4)
+      .subscribe(val => {
+        
+        result = val;
+
+        done();
+      });
+  });
+
+  it('should return true after awhile', function (){
+    expect(result).to.be.true;
   });
 });
-
-
-waitFor(4)
-  .subscribe(val => {
-
-    asynTest(val);
-
-  });

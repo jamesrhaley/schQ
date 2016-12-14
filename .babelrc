@@ -4,7 +4,11 @@
 	],
 	"env": {
 		"test": {
-			"plugins": ["istanbul"]
+			"plugins": [
+				"istanbul",
+				"syntax-async-functions", 
+				"transform-regenerator"
+			]
 		}
 	}
 }
