@@ -14,7 +14,7 @@
     "build:umd": "webpack --output-filename index.umd.js",
     "build:umd.min": "webpack --output-filename index.umd.min.js -p",
     "lint": "eslint src",
-    "test": "cross-env NODE_ENV=test nyc mocha",
+    "test": "NODE_ENV=test nyc mocha",
     "watch:test": "mocha --compilers js:babel-register --watch",
     "validate": "npm-run-all --parallel test lint build"
   },
