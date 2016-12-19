@@ -4,7 +4,7 @@ import Rx from 'rx';
 const emitError = 'Must asign a listener before you can emit.';
 const listenError = 'Keys can not have multiple handlers';
 
-function createName(name) {
+function createKey(name) {
   return '$' + name;
 }
 
@@ -13,6 +13,7 @@ function Emitter() {
   this.subjects = {};
 }
 
+// a kind of type check
 Emitter.prototype.hasObserver = function (name) {
   return this.subjects[name] !== undefined 
     && this.subjects[name].hasObservers();
@@ -23,7 +24,7 @@ Emitter.prototype.listObservers = function () {
 };
 
 Emitter.prototype.emit = function (name, data) {
-  const fnName = createName(name);
+  const fnName = createKey(name);
 
   if (!this.hasObserver(fnName)) {
     
@@ -34,7 +35,7 @@ Emitter.prototype.emit = function (name, data) {
 };
 
 Emitter.prototype.listen = function (name, handler) {
-  const fnName = createName(name);
+  const fnName = createKey(name);
 
   if (!this.hasObserver(fnName)) {
 
@@ -48,7 +49,7 @@ Emitter.prototype.listen = function (name, handler) {
 };
 
 Emitter.prototype.dispose = function (name) {
-  const fnName = createName(name);
+  const fnName = createKey(name);
   const subjects = this.subjects;
   const allKeys = Object.keys(subjects);
   const remainingKeys = allKeys.filter(key => key !== fnName);

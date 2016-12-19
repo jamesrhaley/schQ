@@ -1,6 +1,6 @@
 {
   "name": "schq",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/jamesrhaley/schQ"
@@ -12,8 +12,8 @@
     "prebuild": "rimraf dist",
     "build": "npm-run-all --parallel build:*",
     "build:main": "babel --copy-files --out-dir dist --ignore *.test.js src",
-    "build:umd": "webpack --output-filename index.umd.js",
-    "build:umd.min": "webpack --output-filename index.umd.min.js -p",
+    "build:umd": "webpack --output-filename schQ.js",
+    "build:umd.min": "webpack --output-filename schQ.min.js -p",
     "lint": "eslint src",
     "test": "NODE_ENV=test nyc mocha",
     "watch:test": "mocha --compilers js:babel-register --watch",

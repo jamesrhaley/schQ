@@ -5,4 +5,11 @@
 
 a schedule that uses rx I am building
 
-run `npm run validate` to develop
+run to develop
+
+```
+$ git clone https://github.com/jamesrhaley/schQ.git
+$ cd project
+$ npm install
+$ npm run validate
+```

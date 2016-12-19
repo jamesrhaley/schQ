@@ -11,9 +11,9 @@ export default {
     library: 'schQ',
   },
   devtool: 'source-map',
-  externals: [
-    'rx'
-  ],
+  externals: {
+    'rx': 'Rx'
+  },
   module: {
     loaders: [
       {test: /\.js$/, loaders: ['babel'], include: context}
