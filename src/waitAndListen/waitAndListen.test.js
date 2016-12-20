@@ -16,7 +16,7 @@ describe('waitForListen', function () {
 
       setTimeout(
         function () {
-          return emitter.emit('data1');
+          return emitter.emit('data1','wait1');
         },
         randomTime()
       );
@@ -26,7 +26,7 @@ describe('waitForListen', function () {
         function () {
           return setTimeout(
             function () {
-              return emitter.emit('data2');
+              return emitter.emit('data2','wait2');
             },
             randomTime()
           );
@@ -37,13 +37,13 @@ describe('waitForListen', function () {
 
     // race conditions are causeing a problem
     // with the test
-    waitAndListen(emitter, 'data1', 4)
+    waitAndListen(emitter, 4, 'data1')
       .subscribe(val => {
 
         result1 = val;   
       });
 
-    waitAndListen(emitter, 'data2', 4)
+    waitAndListen(emitter, 4, 'data2')
       .subscribe(val2 => {
         
         result2 = val2;
@@ -72,12 +72,20 @@ describe('waitForListen', function () {
     }, interval);
   });
 
-  it('1 should return "data1: finished"', function () {
-    expect(result1).to.equal('data1: finished');
+  it('1 should return "data1" with 4 entries captured from event', function () {
+    expect( result1.data.length ).to.equal(4);
   });
 
-  it('2 should return "data2: finished"', function () {
-    expect(result2).to.equal('data2: finished');
+  it('1 should return "data1" as it`s key', function () {
+    expect( result1.key ).to.equal('data1');
+  });
+
+  it('2 should return "data2" with 4 entries captured from event', function () {
+    expect( result2.data.length ).to.equal(4);
+  });
+
+  it('2 should return "data2" as it`s key', function () {
+    expect( result2.key ).to.equal('data2');
   });
 
   it('Emitter should be empty"', function () {

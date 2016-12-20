@@ -45,7 +45,10 @@ Emitter.prototype.listen = function (name, handler) {
     throw new Error(listenError);
   }
 
-  return this.subjects[fnName].subscribe(handler);
+  return this.subjects[fnName]
+    .subscribe(emittedData => {
+      handler(emittedData);
+    });
 };
 
 Emitter.prototype.dispose = function (name) {
