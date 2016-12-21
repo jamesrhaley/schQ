@@ -1,4 +1,5 @@
 import Rx from 'rx';
+import processIncoming from './processIncoming';
 
 const Observable = Rx.Observable;
 
@@ -8,7 +9,7 @@ const Observable = Rx.Observable;
 // listenOn -> RxEventEmitter
 // key -> string
 // time -> number of times a key needs to be listened for 
-function waitAndListen(listenOn, times, key) {
+export function waitAndListen(listenOn, times, key) {
   return Observable.create(observer => {
     var count = 0;
     let capturedData = [];
@@ -41,9 +42,9 @@ function start(key) {
   return Observable.of(key+': started');
 }
 
-function finish(key) {
-  return Observable.of(key+': ended');
-}
+// function finish(key) {
+//   return Observable.of(key+': ended');
+// }
 
 function sourcLen(original) {
   return original.source._iterable.length;
@@ -92,10 +93,13 @@ function sourcLen(original) {
 // or it might not.  we will see tomorrow.
 export function runInOrder(listenOn, data, key) {
   let next = start(key);
+  // this should be bound to an emitter for being finished
   let noop = [ [()=>{}] ];
+  let processed = processIncoming(data);
+
   // extend the data so there is data to pass with the zipped
   // container while waiting for the last event
-  const extendedData = data.slice(0).concat(noop);
+  const extendedData = processed.slice(0).concat(noop);
 
   return Observable.from(extendedData)
     .map((container, index, source) => {
@@ -119,36 +123,34 @@ export function runInOrder(listenOn, data, key) {
 
 
 
-export function Schedule(e){
+export function SchQ(e){
   this._emitter = e;
-  this._loadSubject = new Rx.Subject();
+  this._loadSubject = new Rx.ReplaySubject(1);
 }
 
-Schedule.prototype.emitter = function (e) {
-  if (arguments.length) {
-    this._emitter = e;
-  } else {
-    return this._emitter;
-  }
+// give acces to Emitter.emit
+SchQ.prototype.emit = function (data, key) {
+  this._emitter.emit(data, key);
 };
 
-Schedule.prototype.loadPush = function (value) {
-  this._loadSubject.onNext(value);
+// give access to Emitter.listen
+SchQ.prototype.listen = function (name, handler) {
+  this._emitter.listen(name, handler)
 };
 
-Schedule.prototype.loadSubject = function () {
-  return this._loadSubject;
+// pushes data to the pipline and gives the
+// event listener a key to listen on.
+SchQ.prototype.loader = function (data, key) {
+  this._loadSubject.onNext({data, key});
 };
 
-Schedule.prototype.schQ = function () {
-
-  let loadStream = this._loadSubject
-    .map((data, key) => 
-      runInOrder(this._emitter, data, key))
+SchQ.prototype.run = function () {
+  return this._loadSubject
+    .map(loaded => {
+      let {data, key} = loaded;
+      return runInOrder(this._emitter, data, key)
+    })
     .switch();
-
-  return loadStream;
 };
 
 
-export default waitAndListen;

@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import Emitter from './../emitter/index';
-import waitAndListen from './index';
+import { waitAndListen } from './index';
 
 const emitter = new Emitter();
 const randomTime = () => Math.random()*1000;
