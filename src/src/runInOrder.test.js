@@ -8,9 +8,9 @@ var mock = new Mock(emitter);
 
 describe('runInOrder', function () {
   const key = 'data3';
-  let groupArray1 = mock.array(key, 3, { type: 'packed' });
-  let groupArray2 = mock.array(key, 1, { type: 'packed' });
-  let groupArray3 = mock.array(key, 1, { type: 'packed' });
+  let groupArray1 = mock.array(3, { type: 'packed' });
+  let groupArray2 = mock.array(1, { type: 'packed' });
+  let groupArray3 = mock.array(1, { type: 'packed' });
 
   let allDone = false;
 
@@ -22,10 +22,10 @@ describe('runInOrder', function () {
     .subscribe({
       onNext: (x) => {
 
-        let funcs = x[1];
+        let funcs = x.data;
 
         funcs.forEach(fn => {
-          fn();
+          fn(key);
         });
       },
       onError: (e) => console.error(e),
@@ -39,7 +39,7 @@ describe('runInOrder', function () {
     
   });
 
-  it('Test completes', function () {
+  it('Test completes', () => {
     expect(allDone).to.be.true;
   });
 });

@@ -7,17 +7,17 @@ var emitter = new Emitter();
 // init mock by setting its emitter
 var mock = new Mock(emitter);
 
-describe('Mock elements helper', function () {
+describe('Mock elements helper', () => {
   var results1 = [],
     results2 = [];
   
   // create a place to listen for the mock events to end
   // and to recive data
-  emitter.listen('unique', function (data) {
+  emitter.listen('unique', (data) => {
     results1.push('unique:' + JSON.stringify(data));
   });
 
-  emitter.listen('unique2', function (data) {
+  emitter.listen('unique2', (data) => {
     results2.push('unique2:' + JSON.stringify(data));
   });
 
@@ -35,23 +35,23 @@ describe('Mock elements helper', function () {
 
     // create a object of mock events
     function action1() {
-      let groupObject = mock.object('unique', 3, { type: 'packed' });
+      let groupObject = mock.object(3, { type: 'packed' });
 
       // exicute events that call setTimeout before
       // transmiting data
       Object.keys(groupObject).forEach((key, byIndex) => {
-        groupObject[key](which(byIndex));
+        groupObject[key]('unique', which(byIndex));
       });
     }
 
     // create a array of mock events
     function action2() {
-      let groupArray = mock.array('unique2', 3, { type: 'packed' });
+      let groupArray = mock.array(3, { type: 'packed' });
 
       // exicute events that call setTimeout before
       // transmiting data
       groupArray.forEach((fn, byIndex) => {
-        fn(which(byIndex));
+        fn('unique2', which(byIndex));
       });
     }
 
@@ -90,24 +90,24 @@ describe('Mock elements helper', function () {
   });
 
 
-  it('Should return async in results1', function( ) {
+  it('Should return async in results1', () => {
     let example = [
       'unique:{"type":"packed","int":1}',
       'unique:{"type":"rendered","int":2}',
       'unique:{"type":"packed","int":3}'
     ];
 
-    expect(results1).to.eql(example);
+    expect( results1 ).to.eql( example );
   });
 
-  it('Should return async in results2', function( ) {
+  it('Should return async in results2', () => {
     let example = [
       'unique2:{"type":"packed","int":1}',
       'unique2:{"type":"rendered","int":2}',
       'unique2:{"type":"packed","int":3}'
     ];
 
-    expect(results2).to.eql(example);
+    expect( results2 ).to.eql( example );
   }); 
 });
 

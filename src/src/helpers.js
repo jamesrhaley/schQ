@@ -6,7 +6,7 @@ export function Mock(emitter){
 
 }
 
-Mock.prototype.object =  function (key, groups, refPackage) {
+Mock.prototype.object =  function (groups, refPackage) {
   var testObject = {};
   let ifArray = Array.isArray(groups);
   let count = ifArray ? groups.length : groups;
@@ -14,7 +14,7 @@ Mock.prototype.object =  function (key, groups, refPackage) {
   for (let i = 0; i < count; i++) {
     let objectKey = ifArray ? groups[i] : i;
 
-    testObject[objectKey] = (uniquePackage) => 
+    testObject[objectKey] = (key, uniquePackage) => 
       setTimeout(() => 
         this._emitter.emit(
           key,
@@ -27,12 +27,12 @@ Mock.prototype.object =  function (key, groups, refPackage) {
   return testObject;
 };
 
-Mock.prototype.array =  function (key, count, refPackage) {
+Mock.prototype.array =  function (count, refPackage) {
   var testArray = [];
 
   for (let i = 0; i < count; i++) {
 
-    testArray.push( (uniquePackage) => 
+    testArray.push( (key, uniquePackage) => 
       setTimeout(() => 
         this._emitter.emit(
           key,

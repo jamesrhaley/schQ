@@ -1,9 +1,13 @@
-import waitFor from './waitFor/index';
 import Emitter from './emitter/index';
-import {waitAndListen} from './waitAndListen/index';
+import {
+  waitAndListen,
+  runInOrder,
+  SchQ,
+} from './src/index';
 
 export {
-  waitFor,
   Emitter,
-  waitAndListen
+  runInOrder,
+  SchQ,
+  waitAndListen,
 };
