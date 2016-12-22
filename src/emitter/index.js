@@ -1,54 +1,127 @@
 import Rx from 'rx';
-// partially taken from https://github.com/stylelab-io/event-emitter-rx/blob/master/EventEmitterRx.js
 
-const emitError = 'Must asign a listener before you can emit.';
-const listenError = 'Keys can not have multiple handlers';
+var hasOwnProp = {}.hasOwnProperty;
 
-function createName(name) {
+// create a unique key for the subject
+function createKey(name) {
   return '$' + name;
 }
 
-// as of right now Subjects are hot
-function Emitter() {
+/**
+ * Emitter:
+ *  Object of event emitters that use observable to transmit data
+ *
+ * @param {Number} lostCount (10) -> Number of event to catpture 
+ *   if an event if being emitted but not subscribed.
+ */
+function Emitter(lostCount = 10) {
   this.subjects = {};
+  this._lost = '__lost_data__';
+  this._lostCount = lostCount;
 }
 
+/**
+ * Emitter.hasObserver:
+ *  Access the hasObserver property to check if subject is
+ *  observing and not just initialized
+ *
+ * @param {String} name -> Name of variable
+ */
 Emitter.prototype.hasObserver = function (name) {
-  return this.subjects[name] !== undefined 
-    && this.subjects[name].hasObservers();
+  const fnName = createKey(name);
+
+  return this.subjects[fnName] !== undefined
+    && this.subjects[fnName].hasObservers();
 };
 
-Emitter.prototype.listObservers = function () {
+/**
+ * Emitter.listSubjects:
+ *  Returns a list of current Subjects in Emitter for testing 
+ *
+ * @return {Array} -> Array of Strings
+ */
+Emitter.prototype.listSubjects = function () {
   return Object.keys(this.subjects);
 };
 
+/**
+ * Emitter.emit:
+ *  Emits event to a subscribed listener
+ *
+ * @param {String} name -> Name of variable
+ * @param {Any} data -> Any Data to transmit.. this should be limited 
+ */
 Emitter.prototype.emit = function (name, data) {
-  const fnName = createName(name);
+  const fnName = createKey(name);
+  const subjects = this.subjects;
 
-  if (!this.hasObserver(fnName)) {
-    
-    throw new Error(emitError);
+  if (!hasOwnProp.call(subjects, fnName)) {
+    let l = this._lost;
+
+    if(!hasOwnProp.call(subjects, l)) {
+      // not working right just yet.  not data is captured
+      subjects[l] = new Rx.ReplaySubject(this._lostCount);
+    }
+
+    subjects[l].onNext(data);
+
+  } else {
+    subjects[fnName].onNext(data);
   }
-
-  this.subjects[fnName].onNext(data);
 };
 
+/**
+ * Emitter.listen:
+ *  Listen captures and handles events
+ *
+ * @param {String} name -> Name of variable
+ * @param {Function} handler -> A function to handle events
+ * @return {Function} -> A function that disposes the observable via varName.dispose()
+ */
 Emitter.prototype.listen = function (name, handler) {
-  const fnName = createName(name);
+  const fnName = createKey(name);
+  const subjects = this.subjects;
 
-  if (!this.hasObserver(fnName)) {
+  if (!hasOwnProp.call(subjects, fnName)) {
 
     this.subjects[fnName] = new Rx.Subject();
-  } else {
+  } 
 
-    throw new Error(listenError);
-  }
-
-  return this.subjects[fnName].subscribe(handler);
+  return this.subjects[fnName]
+    .subscribe(emittedData => {
+      handler(emittedData);
+    });
 };
 
-Emitter.prototype.dispose = function (name) {
-  const fnName = createName(name);
+/**
+ * Emitter.subject:
+ *  Listen captures and handles events the same as Emitter.listen
+ *  with the point of having the access to the full Subject to be
+ *  able to write an Observable.create for onComplete and onError
+ *
+ * @param {String} name -> Name of variable
+ * @return {Subject} -> a Subject for the Observable subscribe
+ */
+Emitter.prototype.subject = function (name) {
+  const fnName = createKey(name);
+  const subjects = this.subjects;
+
+  if (!hasOwnProp.call(subjects, fnName)) {
+
+    this.subjects[fnName] = new Rx.Subject();
+  } 
+
+  return this.subjects[fnName];
+};
+
+/**
+ * Emitter.unsubscribe:
+ *  Unsubscribe from a single Subject
+ *
+ * @param {String} name -> Name of variable
+ */
+Emitter.prototype.unsubscribe = function (name) {
+  const fnName = createKey(name);
   const subjects = this.subjects;
   const allKeys = Object.keys(subjects);
   const remainingKeys = allKeys.filter(key => key !== fnName);
@@ -63,7 +136,11 @@ Emitter.prototype.dispose = function (name) {
   this.subjects = remainingSubjects;
 };
 
-Emitter.prototype.disposeAll = function () {
+/**
+ * Emitter.unsubscribeAll:
+ *  Unsubscribe from all Subjects
+ */
+Emitter.prototype.unsubscribeAll = function () {
   const subjects = this.subjects;
   const keys = Object.keys(subjects);
 

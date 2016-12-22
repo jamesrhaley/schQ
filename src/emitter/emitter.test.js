@@ -4,65 +4,97 @@ import {expect} from 'chai';
 const emitter = new Emitter();
 
 describe('emitter', () => {
-  let value, firstEmitter, removed$Data, threeEmitters,
-    oneEmitterGone, allEmittersRemoved;
+  let firstEmitedValue,
+    subscription,
+    hasObserve,
+    firstEmitter,
+    unsubscribedEmitter,
+    threeEmitters,
+    oneEmitterGone,
+    allEmittersRemoved,
+    thereIsLostData;
 
   
   before(function (done){
     // set one subject listener
     emitter.listen('data', function (data) {
-      value = 'data: ' + data;
+      firstEmitedValue = 'data: ' + data;
     });
 
     // emit to that the first listener
     emitter.emit('data', 'foo');
 
+    hasObserve = emitter.hasObserver('data');
+    
+    // add another subscription to the same event
+    subscription = emitter.listen('data', function (data) {
+      return 'data: ' + data;
+    });
+
     // get the name of the first listener
-    firstEmitter = emitter.listObservers();
+    firstEmitter = emitter.listSubjects();
 
     // dispose all listener
-    emitter.disposeAll();
+    emitter.unsubscribe('data');
 
     // verify all listeners are removed
-    removed$Data = emitter.listObservers();
+    unsubscribedEmitter = emitter.listSubjects();
 
     // add three listeners
     for (let i = 0; i < 3; i++){
       let str = 'data' + (i + 1);
       emitter.listen(str, function (data) {
-        value = str + ': ' + data;
+        return str + ': ' + data;
       });      
     }
 
     // get the keys of all three
-    threeEmitters = emitter.listObservers();
+    threeEmitters = emitter.listSubjects();
 
     // remove one emitter
-    emitter.dispose('data1');
+    emitter.unsubscribe('data1');
 
-    oneEmitterGone = emitter.listObservers();
+    oneEmitterGone = emitter.listSubjects();
 
     // remove remaining emitters
-    emitter.disposeAll();
+    emitter.unsubscribeAll();
 
-    allEmittersRemoved = emitter.listObservers();
+    allEmittersRemoved = emitter.listSubjects();
+
+    emitter.emit('data5','foo');
+
+    emitter.emit('data6','foo');
+
+    thereIsLostData = emitter.listSubjects();
+    
+    // emitter.listen('__lost_data__', function (data) {
+    //   console.log(data)
+    // });
 
     done();
   });
 
   it('Emitter emitts value to listener', () => {
-    expect(value).to.equal('data: foo');
+    expect(firstEmitedValue).to.equal('data: foo');
   });
 
-  it('Before dispoes emitter has a key', () => {
+  it('Events can be listen on by multiple subscibers', () => {
+    expect(subscription).to.exist;
+  });
+
+  it('Can access method hasObserver', () => {
+    expect(hasObserve).to.be.true;
+  });
+
+  it('Before unsubscribe emitter has a the key `$data`', () => {
     expect(firstEmitter).to.eql(['$data']);
   });
 
-  it('After dispoes emitter lacks a key', () => {
-    expect(removed$Data).to.eql([]);
+  it('After unsubscribe emitter lacks any key', () => {
+    expect(unsubscribedEmitter).to.eql([]);
   });
 
-  it('There are now three keys', () => {
+  it('There are now three keys of three emitters', () => {
     expect(threeEmitters)
       .to.eql(['$data1', '$data2', '$data3']);
   });
@@ -76,26 +108,14 @@ describe('emitter', () => {
     expect(allEmittersRemoved).to.eql([]);
   });
 
-  it('Emit should throw error', () => {
-    const str = 'Must asign a listener before you can emit.';
-
-    expect(() => emitter.emit('data4')).to.throw(str);
+  it('data that is emitted by not listen to is caught', () => {
+    expect(thereIsLostData).to.eql([ '__lost_data__' ]);
   });
 
-  it('Listen should throw error', () => {
-    const str = 'Keys can not have multiple handlers';
-
-    let first = emitter;
-    let second = emitter;
-
-    first.listen('data', function (data) {
-      value = 'data: ' + data;
-    });
-
-    expect(() => 
-      second.listen('data', function (data) {
-        value = 'mydata: ' + data;
-      })
-    ).to.throw(str);
+  it('You can call a Subject even if it does not exist', () => {
+    let ed1 = emitter.subject('ed');
+    let ed2 = emitter.subject('ed');
+    expect(ed1).to.be.truthy;
+    expect(ed2).to.be.truthy;
   });
 });

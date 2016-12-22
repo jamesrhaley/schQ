@@ -1,11 +1,11 @@
 import {expect} from 'chai';
 import Emitter from './../emitter/index';
-import waitAndListen from './index';
+import { waitAndListen } from './index';
 
 const emitter = new Emitter();
 const randomTime = () => Math.random()*1000;
 
-describe('waitForListen', function () {  
+describe('waitForListen', () => {  
   let result1 = undefined;
   let result2 = undefined;
 
@@ -16,7 +16,7 @@ describe('waitForListen', function () {
 
       setTimeout(
         function () {
-          return emitter.emit('data1');
+          return emitter.emit('data1','wait1');
         },
         randomTime()
       );
@@ -26,7 +26,7 @@ describe('waitForListen', function () {
         function () {
           return setTimeout(
             function () {
-              return emitter.emit('data2');
+              return emitter.emit('data2','wait2');
             },
             randomTime()
           );
@@ -37,13 +37,13 @@ describe('waitForListen', function () {
 
     // race conditions are causeing a problem
     // with the test
-    waitAndListen(emitter, 'data1', 4)
+    waitAndListen(emitter, 4, 'data1')
       .subscribe(val => {
 
         result1 = val;   
       });
 
-    waitAndListen(emitter, 'data2', 4)
+    waitAndListen(emitter, 4, 'data2')
       .subscribe(val2 => {
         
         result2 = val2;
@@ -55,7 +55,7 @@ describe('waitForListen', function () {
     let time = 0;
     let interval = 250;
     let testInterval = setInterval(() => {
-      if (result1 !== undefined && result2 !== undefined){
+      if (result1 !== undefined && result2 !== undefined) {
 
         clearInterval(testInterval);
 
@@ -72,16 +72,24 @@ describe('waitForListen', function () {
     }, interval);
   });
 
-  it('1 should return "data1: finished"', function () {
-    expect(result1).to.equal('data1: finished');
+  it('1 should return "data1" with 4 entries captured from event', () => {
+    expect( result1.events.length ).to.equal(4);
   });
 
-  it('2 should return "data2: finished"', function () {
-    expect(result2).to.equal('data2: finished');
+  it('1 should return "data1" as it`s key', () => {
+    expect( result1.key ).to.equal('data1');
   });
 
-  it('Emitter should be empty"', function () {
-    expect(emitter.listObservers()).to.eql([]);
+  it('2 should return "data2" with 4 entries captured from event', () => {
+    expect( result2.events.length ).to.equal(4);
+  });
+
+  it('2 should return "data2" as it`s key', () => {
+    expect( result2.key ).to.equal('data2');
+  });
+
+  it('Emitter should be empty"', () => {
+    expect( emitter.listSubjects() ).to.eql([]);
   });
 });
 
