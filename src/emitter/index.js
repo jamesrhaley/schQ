@@ -55,15 +55,20 @@ Emitter.prototype.emit = function (name, data) {
   const fnName = createKey(name);
   const subjects = this.subjects;
 
+  // check to see if the subject object is missing a key and 
+  // if the user wishes for any unlisten to data to be caught
   if (!hasOwnProp.call(subjects, fnName)) {
-    let l = this._lost;
+    let l = createKey(this._lost);
 
-    if(!hasOwnProp.call(subjects, l)) {
-      // not working right just yet.  not data is captured
-      subjects[l] = new Rx.ReplaySubject(this._lostCount);
+    if (this._lostCount > 0) {
+      
+      if(!hasOwnProp.call(subjects, l)) {
+        // not working right just yet.  not data is captured
+        subjects[l] = new Rx.ReplaySubject(this._lostCount);
+      }
+
+      subjects[l].onNext(data);
     }
-
-    subjects[l].onNext(data);
 
   } else {
     subjects[fnName].onNext(data);
@@ -123,15 +128,17 @@ Emitter.prototype.subject = function (name) {
 Emitter.prototype.unsubscribe = function (name) {
   const fnName = createKey(name);
   const subjects = this.subjects;
-  const allKeys = Object.keys(subjects);
-  const remainingKeys = allKeys.filter(key => key !== fnName);
   const remainingSubjects = {};
-
+  
   subjects[fnName].dispose();
 
-  remainingKeys.forEach(key => {
-    remainingSubjects[key] = subjects[key];
-  });
+  Object.keys(subjects)
+    .filter(key => 
+      key !== fnName
+    )
+    .forEach(key => {
+      remainingSubjects[key] = subjects[key];
+    });
 
   this.subjects = remainingSubjects;
 };
