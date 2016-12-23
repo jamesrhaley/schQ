@@ -75,11 +75,10 @@ function sourcLen(original) {
 export function runInOrder(listenOn, data, key) {
   // this should be bound to an emitter for being finished
   const noop = [ [()=>{}] ];
-  const processed = processIncoming(data);
 
   // extend the data so there is data to pass with the zipped
   // container while waiting for the last event
-  const extendedData = processed.slice(0).concat(noop);
+  const extendedData = data.slice(0).concat(noop);
   //set the next watch and listen
   let next = start(key);
 
@@ -117,6 +116,7 @@ export function SchQ(e) {
   e = e !== undefined ? e : new Emitter(0);
   this._emitter = e;
   this._loadSubject = new Rx.ReplaySubject(1);
+  this._processData = processIncoming;
 }
 
 /**
@@ -155,8 +155,25 @@ SchQ.prototype.loader = function (data, key) {
 SchQ.prototype.run = function () {
   return this._loadSubject
     .map(loaded => {
-      let {data, key} = loaded;
-      return runInOrder(this._emitter, data, key);
+      const {data, key} = loaded;
+      const processed = this._processData(data);
+      return runInOrder(this._emitter, processed, key);
     })
     .switch();
+};
+
+/**
+ * SchQ.setPrepFunction:
+ *  The current prep function does not handle complicated cases
+ *  It only make sure only function are in the Array of Arrays.
+ *  The only requirement is that your end array contains nested arrays
+ *  at every step.
+ *
+ * @param {Function} fn -> set paramaters for the array that will
+ *   pass functions and data to the subscribe function
+ */
+// give access to the emitter to hook an event
+// from another API
+SchQ.prototype.setPrepFunction = function (fn) {
+  this._processData = fn;
 };

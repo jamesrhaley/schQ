@@ -4,11 +4,11 @@ import { Mock } from './helpers';
 import { SchQ } from './index';
 
 const containIn = (arr, times, what) => {
-  return arr.reduce((acc, curr) => {
+  return arr.reduce((pre, curr) => {
     if(curr === what) {
-      return acc + 1;
+      return pre + 1;
     } else {
-      return acc;
+      return pre;
     }
   }, 0);
 };
@@ -22,7 +22,7 @@ describe('SchQ', () => {
 
   before(function(done) {
     const key = 'process';
-    const schQ = new SchQ();
+    const schQ = new SchQ(new Emitter(2));
     const mock = new Mock(schQ.emitter());
 
 
@@ -106,13 +106,23 @@ describe('SchQ', () => {
   });
 
   it('There should be unused data cause by the second push', () => {
-    expect( endObservers ).to.be.eql( [ '__lost_data__' ] );
+    expect( endObservers ).to.be.eql( [ '$__lost_data__' ] );
   });
 
   it('Should have recived data back from cycle', () => {
 
     expect( containIn(passedData, 2, undefined) )
       .to.be.equal(2);
+  });  
+
+  it('Should be able to change the prep fuction', () => {
+    const schQ = new SchQ();
+
+    schQ.setPrepFunction((a,b) => a + b);
+
+    let three = schQ._processData(1,2);
+
+    expect( three ).to.be.equal(3);
   });  
 
   describe('Can load with an external Emitter', () => {

@@ -12,7 +12,8 @@ describe('emitter', () => {
     threeEmitters,
     oneEmitterGone,
     allEmittersRemoved,
-    thereIsLostData;
+    thereIsLostData,
+    caughtLostData = [];
 
   
   before(function (done){
@@ -66,13 +67,14 @@ describe('emitter', () => {
     emitter.emit('data6','foo');
 
     thereIsLostData = emitter.listSubjects();
-    
-    // emitter.listen('__lost_data__', function (data) {
-    //   console.log(data)
-    // });
+
+    emitter.listen('__lost_data__', function (data) {
+      caughtLostData.push(data);
+    });
 
     done();
   });
+  
 
   it('Emitter emitts value to listener', () => {
     expect(firstEmitedValue).to.equal('data: foo');
@@ -108,14 +110,27 @@ describe('emitter', () => {
     expect(allEmittersRemoved).to.eql([]);
   });
 
-  it('data that is emitted by not listen to is caught', () => {
-    expect(thereIsLostData).to.eql([ '__lost_data__' ]);
+  it('Data that is emitted by not listen to is caught', () => {
+    expect(thereIsLostData).to.eql([ '$__lost_data__' ]);
   });
 
+  it('Data that is lost is caught', () => {
+    expect(caughtLostData).to.eql([ 'foo', 'foo']);
+  });
+
+  it('Should not catch unlistened too data if not desired', () => {
+    const noData = new Emitter(0);
+
+    noData.emit('test', 'foo');
+
+    expect(noData.listSubjects()).to.eql([]);
+  });
   it('You can call a Subject even if it does not exist', () => {
     let ed1 = emitter.subject('ed');
     let ed2 = emitter.subject('ed');
+
     expect(ed1).to.be.truthy;
+    
     expect(ed2).to.be.truthy;
   });
 });
