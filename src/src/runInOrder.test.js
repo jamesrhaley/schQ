@@ -3,6 +3,7 @@ import Emitter from './../emitter/index';
 import {runInOrder} from './index';
 import { Mock } from './helpers';
 
+var rIO = runInOrder();
 var emitter = new Emitter();
 var mock = new Mock(emitter);
 
@@ -16,7 +17,7 @@ describe('runInOrder', function () {
 
   before(function (done) {
     const data = [groupArray1, groupArray2, groupArray3];
-    const arrFrom = runInOrder(emitter, data, key);
+    const arrFrom = rIO(emitter, data, key);
 
     arrFrom
     .subscribe({

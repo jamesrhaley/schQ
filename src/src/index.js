@@ -1,6 +1,7 @@
 import Rx from 'rx';
 import Emitter from './../emitter/index';
 import processIncoming from './processIncoming';
+import validate from './validate';
 
 const Observable = Rx.Observable;
 
@@ -59,6 +60,10 @@ function sourcLen(original) {
   return original.source._iterable.length;
 }
 
+const last = [[() => {} ]];
+
+const len = (obj) => obj.length;
+
 /**
  * runInOrder:
  *  creates a pipeline of queued data and subcribe events
@@ -66,57 +71,84 @@ function sourcLen(original) {
  *  delayed until event messages say the last actions have
  *  been performed
  *
- * @param {Emitter} emitter -> RxEventEmitter
- * @param {Array} data -> an Array of Arrays
- * @param {String} key -> key to be id to listen on
+ * @param {Function} doLast -> what to do when sequence completes
+ * @param {Function} getLen -> how to get the length of each Object
+ * @return {Function} ->
+ *   @param {Emitter} emitter -> RxEventEmitter
+ *   @param {Array} data -> an Array of Arrays
+ *   @param {String} key -> key to be id to listen on
  */
  // I still believe I should be using Observable.create here.
  // I should revist to test for memory leaks
-export function runInOrder(listenOn, data, key) {
-  // this should be bound to an emitter for being finished
-  const noop = [ [()=>{}] ];
+export function runInOrder(doLast, getLen){
+  doLast = typeof doLast !== 'undefined' ? doLast : last;
 
-  // extend the data so there is data to pass with the zipped
-  // container while waiting for the last event
-  const extendedData = data.slice(0).concat(noop);
-  //set the next watch and listen
-  let next = start(key);
+  getLen = typeof getLen !== 'undefined' ? getLen : len;
 
-  return Observable.from(extendedData)
-    .map((container, index, source) => {
-      let curr = next;
-      let len = container.length;
+  return function (listenOn, data, key) {
 
-      if (index + 1 < sourcLen(source)) {
-        next = waitAndListen(listenOn, len, key);
-      } else {
-        // this might be a tiny memory leak
-        next = null;
-      }
+    // extend the data so there is data to pass with the zipped
+    // container while waiting for the last event
+    const extendedData = data.slice(0).concat(doLast);
+    //set the next watch and listen
+    let next = start(key);
 
-      return Observable.zip(
-        curr,
-        Observable.of(container),
-        (message, data) => ({message, data})
-      );
-    }).concatAll();
+    return Observable.from(extendedData)
+      .map((container, index, source) => {
+        let curr = next;
+        let len = getLen(container);
+
+        if (index + 1 < sourcLen(source)) {
+          next = waitAndListen(listenOn, len, key);
+        } else {
+          // this might be a tiny memory leak
+          next = null;
+        }
+
+        return Observable.zip(
+          curr,
+          Observable.of(container),
+          (message, data) => ({message, data})
+        );
+      }).concatAll();
+  };
 }
+
+const baseSetting = {
+  lostData : 0,
+  preprocess : processIncoming,
+  doLast : last,
+  checkout: len
+};
 
 /**
  * SchQ:
- *  SchQ creates an event scheduling pipeline that I
- *  created to handle d3 events
+ *  SchQ is an event scheduling pipeline that I’ve created to schedule d3
+ *  animations.  It can also be used for preforming the same operation 
+ *  in any other sequence where controlling the order of events needs to be 
+ *  automatically canceled when the state of the application has changed.
  *
- * @param {Emitter} e (new Emitter)-> the event Emitter. The only
- *   reason input the Emitter yourself is to include a number argument
- *   to the Emitter to track unsubscribed to events by have a number as
- *   the agument to Emitter i.e. new Emitter(10)
+ * @param {Object} config (baseSetting)-> {
+ *   @param {Number} lostData (0) -> Set the number of items of lost data
+ *      to track if you need to test or have another use for that lost information
+ *   @param {Function} preprocess (processIncoming) -> create a consistent
+ *     interable. i.e. processIncoming creates an Array of Arrays of Functions
+ *   @param {Function} doLast (last) -> what to do when all process are 
+ *     finished. i.e. last is a noop () => {}
+ *   @param {Function} checkout (len) -> how schQ know how many items out
+ *     preforming operations. i.e. len gets the length of each Array of 
+ *     Functions created by processIncoming
+ * }
  */
-export function SchQ(e) {
-  e = e !== undefined ? e : new Emitter(0);
-  this._emitter = e;
+export default function SchQ(config=baseSetting) {
+  const allConfig = validate(baseSetting, config);
+
+  let {lostData, preprocess, doLast, checkout} = allConfig;
+
+  this._emitter = new Emitter(lostData);
   this._loadSubject = new Rx.ReplaySubject(1);
-  this._processData = processIncoming;
+  this._processData = preprocess;
+  this._runInOrder = runInOrder(doLast, checkout);
 }
 
 /**
@@ -157,23 +189,9 @@ SchQ.prototype.run = function () {
     .map(loaded => {
       const {data, key} = loaded;
       const processed = this._processData(data);
-      return runInOrder(this._emitter, processed, key);
+      const rio = this._runInOrder;
+      return rio(this._emitter, processed, key);
     })
     .switch();
 };
 
-/**
- * SchQ.setPrepFunction:
- *  The current prep function does not handle complicated cases
- *  It only make sure only function are in the Array of Arrays.
- *  The only requirement is that your end array contains nested arrays
- *  at every step.
- *
- * @param {Function} fn -> set paramaters for the array that will
- *   pass functions and data to the subscribe function
- */
-// give access to the emitter to hook an event
-// from another API
-SchQ.prototype.setPrepFunction = function (fn) {
-  this._processData = fn;
-};
