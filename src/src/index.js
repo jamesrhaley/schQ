@@ -164,7 +164,7 @@ SchQ.prototype.emitter = function () {
 };
 
 /**
- * SchQ.emitter:
+ * SchQ.loader:
  *  pushes data to the pipline and gives the event listener 
  *  a key to listen on.
  *
