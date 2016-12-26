@@ -63,7 +63,6 @@ Emitter.prototype.emit = function (name, data) {
     if (this._lostCount > 0) {
       
       if(!hasOwnProp.call(subjects, l)) {
-        // not working right just yet.  not data is captured
         subjects[l] = new Rx.ReplaySubject(this._lostCount);
       }
 
