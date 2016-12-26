@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import Emitter from './../emitter/index';
 import { Mock } from './helpers';
-import { SchQ } from './index';
+import SchQ from './index';
 
 const containIn = (arr, times, what) => {
   return arr.reduce((pre, curr) => {
@@ -22,7 +21,7 @@ describe('SchQ', () => {
 
   before(function(done) {
     const key = 'process';
-    const schQ = new SchQ(new Emitter(2));
+    const schQ = new SchQ({lostData:2});
     const mock = new Mock(schQ.emitter());
 
 
@@ -116,9 +115,7 @@ describe('SchQ', () => {
   });  
 
   it('Should be able to change the prep fuction', () => {
-    const schQ = new SchQ();
-
-    schQ.setPrepFunction((a,b) => a + b);
+    const schQ = new SchQ({preprocess: (a,b) => a + b});
 
     let three = schQ._processData(1,2);
 
@@ -126,11 +123,9 @@ describe('SchQ', () => {
   });  
 
   describe('Can load with an external Emitter', () => {
-    let example = new SchQ(new Emitter());
+    let example = new SchQ();
 
     it('Should be instanceof of SchQ', () => {
-      expect( example ).to.eql( new SchQ(new Emitter()) );
-
       expect( example instanceof SchQ ).to.be.true;    
     });
 
