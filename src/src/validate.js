@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 export default function validate(base, check={}) {
 
   const baseKeys = Object.keys(base);

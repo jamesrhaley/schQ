@@ -13,6 +13,9 @@ const verify = (item, str) => {
 
 // takes an array and tranforms it into a queue like array
 // be subcribed to from the scheduling Observable.
+/**
+ * @private
+ */
 export default function processIncoming(arr) {
   var result = [];
 
