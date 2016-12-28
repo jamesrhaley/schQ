@@ -1,5 +1,11 @@
+/**
+ * @private
+ */
 export var randomTime = () => Math.random()*100;
 
+/**
+ * @private
+ */
 export function Mock(emitter){
   this._emitter = emitter;
   this._randomTime = randomTime;

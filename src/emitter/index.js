@@ -8,154 +8,251 @@ function createKey(name) {
 }
 
 /**
- * Emitter:
- *  Object of event emitters that use observable to transmit data
+ * Emitter Object of event emitters that use observable to transmit data
+ * based off of the example at https://goo.gl/gw1Z3I with a few more 
+ * bells and whistles.
  *
- * @param {Number} lostCount (10) -> Number of event to catpture 
- *   if an event if being emitted but not subscribed.
+ * @example
+ * let emitter = new Emitter();
+ * 
+ * let subcription = emitter.listen('data', function (data) {
+ *   console.log('data: ' + data);
+ * });
+ * 
+ * emitter.emit('data', 'foo');
+ * // => data: foo
+ * 
+ * // Destroy the subscription
+ * subscription.dispose();
  */
-function Emitter(lostCount = 10) {
-  this.subjects = {};
-  this._lost = '__lost_data__';
-  this._lostCount = lostCount;
-}
+class Emitter{
+  /**
+   * @param {Number} [lostCount=10] - Number of event to catpture 
+   *   if an event if being emitted but not subscribed.  
+   */
+  constructor(lostCount=10) {
+    /**
+     * @type {Object}
+     */
+    this.subjects = {};
+    /**
+     * @type {String}
+     */
+    this._lost = '__lost_data__';
+    /**
+     * @type {Number}
+     */
+    this._lostCount = lostCount;
+  }
 
-/**
- * Emitter.hasObserver:
- *  Access the hasObserver property to check if subject is
- *  observing and not just initialized
- *
- * @param {String} name -> Name of variable
- */
-Emitter.prototype.hasObserver = function (name) {
-  const fnName = createKey(name);
+  /**
+   * Emitter.hasObserver:
+   *  Access the hasObserver property to check if subject has an observer.
+   *  This comes in handy because subjects by nature are hot and if you 
+   *  emit to a subject that does not have the observer you are emiting
+   *  on, there is not a subscriber to perform the side effects you wish
+   *  for in your program.  This is for testing.
+   *  
+   *
+   * @param {String} name - Name of variable
+   * @return {Boolean}
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * console.log(emitter.hasObservers(data));
+   * // => false
+   * 
+   * var subscription = emitter.listen(
+   *   (x) => {
+   *     console.log(x);
+   *   });
+   * 
+   * console.log(emitter.hasObservers(data));
+   * // => true
+   */
+  hasObserver(name) {
+    const fnName = createKey(name);
 
-  return this.subjects[fnName] !== undefined
-    && this.subjects[fnName].hasObservers();
-};
+    return this.subjects[fnName] !== undefined
+      && this.subjects[fnName].hasObservers();
+  }
 
-/**
- * Emitter.listSubjects:
- *  Returns a list of current Subjects in Emitter for testing 
- *
- * @return {Array} -> Array of Strings
- */
-Emitter.prototype.listSubjects = function () {
-  return Object.keys(this.subjects);
-};
+  /**
+   * Emitter.listSubjects:
+   *  Returns a list of current Subjects. Each will have a preceding $
+   *  tag. 
+   *
+   * @return {Array} - Array of Strings
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * let subcription = emitter.listen('data', function (data) {
+   *   console.log('data: ' + data);
+   * });
+   * 
+   * console.log(emitter.listSubjects());
+   * // => ['$data']
+   */
+  listSubjects() {
+    return Object.keys(this.subjects);
+  }
 
-/**
- * Emitter.emit:
- *  Emits event to a subscribed listener
- *
- * @param {String} name -> Name of variable
- * @param {Any} data -> Any Data to transmit.. this should be limited 
- */
-Emitter.prototype.emit = function (name, data) {
-  const fnName = createKey(name);
-  const subjects = this.subjects;
+  /**
+   * Emitter.emit:
+   *  Emits event to a subscribed listener
+   *
+   * @param {String} name -> Name of variable
+   * @param {Any} data -> Any Data to transmit.. this should be limited 
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * let subcription = emitter.listen('data', function (data) {
+   *   console.log('data: ' + data);
+   * });
+   * 
+   * emitter.emit('data', 'foo');
+   * // => data: foo
+   */
+  emit(name, data) {
+    const fnName = createKey(name);
+    const subjects = this.subjects;
 
-  // check to see if the subject object is missing a key and 
-  // if the user wishes for any unlisten to data to be caught
-  if (!hasOwnProp.call(subjects, fnName)) {
-    let l = createKey(this._lost);
+    // check to see if the subject object is missing a key and 
+    // if the user wishes for any unlisten to data to be caught
+    if (!hasOwnProp.call(subjects, fnName)) {
+      let l = createKey(this._lost);
 
-    if (this._lostCount > 0) {
-      
-      if(!hasOwnProp.call(subjects, l)) {
-        subjects[l] = new Rx.ReplaySubject(this._lostCount);
+      if (this._lostCount > 0) {
+        
+        if(!hasOwnProp.call(subjects, l)) {
+          subjects[l] = new Rx.ReplaySubject(this._lostCount);
+        }
+
+        subjects[l].onNext(data);
       }
 
-      subjects[l].onNext(data);
+    } else {
+      subjects[fnName].onNext(data);
     }
-
-  } else {
-    subjects[fnName].onNext(data);
   }
-};
+  /**
+   * Emitter.listen:
+   *  listens for an event name and handles it via the handle callback
+   *  function.  It is the subscribe method of an observable.  If you wish
+   *  to handle error and have a complete function use method subject 
+   *
+   * @param {String} name -> Name of variable
+   * @param {Function} handler -> A function to handle events
+   * @return {Function} -> A unsubscribe function via varName.dispose()
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * let subcription = emitter.listen('data', function (data) {
+   *   console.log('data: ' + data);
+   * });
+   *
+   * subcription.dispose()
+   */
+  listen(name, handler) {
+    const fnName = createKey(name);
+    const subjects = this.subjects;
 
-/**
- * Emitter.listen:
- *  Listen captures and handles events
- *
- * @param {String} name -> Name of variable
- * @param {Function} handler -> A function to handle events
- * @return {Function} -> A function that disposes the observable via varName.dispose()
- */
-Emitter.prototype.listen = function (name, handler) {
-  const fnName = createKey(name);
-  const subjects = this.subjects;
+    if (!hasOwnProp.call(subjects, fnName)) {
 
-  if (!hasOwnProp.call(subjects, fnName)) {
+      this.subjects[fnName] = new Rx.Subject();
+    } 
 
-    this.subjects[fnName] = new Rx.Subject();
-  } 
+    return this.subjects[fnName]
+      .subscribe(emittedData => {
+        handler(emittedData);
+      });
+  }
+  /**
+   * Emitter.subject:
+   *  Listen captures and handles events the same as Emitter.listen
+   *  with the point of having the access to the full Subject to be
+   *  able to write an Observable.create for onComplete and onError
+   *
+   * @param {String} name -> Name of variable
+   * @return {Subject} -> a Subject for the Observable subscribe
+   */
+  subject(name) {
+    const fnName = createKey(name);
+    const subjects = this.subjects;
 
-  return this.subjects[fnName]
-    .subscribe(emittedData => {
-      handler(emittedData);
+    if (!hasOwnProp.call(subjects, fnName)) {
+
+      this.subjects[fnName] = new Rx.Subject();
+    } 
+
+    return this.subjects[fnName];
+  }
+
+  /**
+   * Emitter.unsubscribe:
+   *  Unsubscribe from a single Subject
+   *
+   * @param {String} name -> Name of variable
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * emitter.listen('data1', (data)=> console.log(data));
+   * emitter.listen('data2', (data)=> console.log(data));
+   *
+   * console.log(emitter.listSubjects());
+   * // => ['$data1', '$data2']
+   *
+   * emitter.unsubscribe('data1');
+   *
+   * console.log(emitter.listSubjects());
+   * // => ['$data2']
+   */
+  unsubscribe(name) {
+    const fnName = createKey(name);
+    const subjects = this.subjects;
+    const remainingSubjects = {};
+    
+    subjects[fnName].dispose();
+
+    Object.keys(subjects)
+      .filter(key => 
+        key !== fnName
+      )
+      .forEach(key => {
+        remainingSubjects[key] = subjects[key];
+      });
+
+    this.subjects = remainingSubjects;
+  }
+
+  /**
+   * Emitter.unsubscribeAll:
+   *  Unsubscribe from all Subjects
+   * @example
+   * let emitter = new Emitter();
+   * 
+   * emitter.listen('data1', (data) => console.log(data));
+   * emitter.listen('data2', (data) => console.log(data));
+   * emitter.listen('data3', (data) => console.log(data));
+   *
+   * console.log(emitter.listSubjects());
+   * // => ['$data1', '$data2', '$data3']
+   *
+   * emitter.unsubscribeAll();
+   *
+   * console.log(emitter.listSubjects());
+   * // => []
+   */
+  unsubscribeAll() {
+    const subjects = this.subjects;
+    const keys = Object.keys(subjects);
+
+    keys.forEach(key => {
+      subjects[key].dispose();
     });
-};
 
-/**
- * Emitter.subject:
- *  Listen captures and handles events the same as Emitter.listen
- *  with the point of having the access to the full Subject to be
- *  able to write an Observable.create for onComplete and onError
- *
- * @param {String} name -> Name of variable
- * @return {Subject} -> a Subject for the Observable subscribe
- */
-Emitter.prototype.subject = function (name) {
-  const fnName = createKey(name);
-  const subjects = this.subjects;
-
-  if (!hasOwnProp.call(subjects, fnName)) {
-
-    this.subjects[fnName] = new Rx.Subject();
-  } 
-
-  return this.subjects[fnName];
-};
-
-/**
- * Emitter.unsubscribe:
- *  Unsubscribe from a single Subject
- *
- * @param {String} name -> Name of variable
- */
-Emitter.prototype.unsubscribe = function (name) {
-  const fnName = createKey(name);
-  const subjects = this.subjects;
-  const remainingSubjects = {};
-  
-  subjects[fnName].dispose();
-
-  Object.keys(subjects)
-    .filter(key => 
-      key !== fnName
-    )
-    .forEach(key => {
-      remainingSubjects[key] = subjects[key];
-    });
-
-  this.subjects = remainingSubjects;
-};
-
-/**
- * Emitter.unsubscribeAll:
- *  Unsubscribe from all Subjects
- */
-Emitter.prototype.unsubscribeAll = function () {
-  const subjects = this.subjects;
-  const keys = Object.keys(subjects);
-
-  keys.forEach(key => {
-    subjects[key].dispose();
-  });
-
-  this.subjects = {};
-};
-
+    this.subjects = {};
+  }
+}
 
 export default Emitter;
