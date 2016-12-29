@@ -125,12 +125,4 @@ describe('emitter', () => {
 
     expect(noData.listSubjects()).to.eql([]);
   });
-  it('You can call a Subject even if it does not exist', () => {
-    let ed1 = emitter.subject('ed');
-    let ed2 = emitter.subject('ed');
-
-    expect(ed1).to.be.truthy;
-    
-    expect(ed2).to.be.truthy;
-  });
 });
