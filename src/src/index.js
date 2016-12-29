@@ -21,24 +21,26 @@ export function waitAndListen(emitter, times, key) {
     let count = 0;
     let capturedData = [];
 
-    const subscription = emitter.subject(key)
-      .subscribe( 
-        data => {
-          count += 1;
-          // capture all returning data for use in next cycle
-          capturedData.push(data);
+    const subscription = emitter.listen(key, {
+      onNext :(data) => {
+        count += 1;
+        // capture all returning data for use in next cycle
+        capturedData.push(data);
+        // console.log('all the way inside')
+        // console.log('has inner',emitter.hasObserver(key))
+        if (count >= times) {
 
-          if (count >= times) {
+          observer.onNext({key, events: capturedData });
 
-            observer.onNext({key, events: capturedData });
+          observer.onCompleted();
+        }
+      },
 
-            observer.onCompleted();
-          }
-        },
-        observer.onError.bind(observer),
-        observer.onCompleted.bind(observer)
-      );
-
+      onError :  observer.onError.bind(observer),
+      onComplete :  observer.onCompleted.bind(observer)
+    });
+    // console.log('did we get here')
+    // console.log('has sub',emitter.hasObserver(key))
     return () => {
 
       emitter.unsubscribe(key);
@@ -47,6 +49,27 @@ export function waitAndListen(emitter, times, key) {
     };
   });
 }
+/**
+
+ */
+// export function pauseTill(testCase, throttleBy) {
+//   return Rx.Observable.create(observer => {
+//     var source = Rx.Observable
+//       .interval(throttleBy /* ms */)
+//       .subscribe(() => {
+//         // console.log(testCase())
+//         if (testCase()) {
+//           observer.onNext(true);
+//           observer.onCompleted();
+//         }
+//       });
+    
+//     return () => {
+//       source.dispose();
+//     };
+//   });
+// }
+
 
 /** goes into the rx prototype to get the length of the original source */
 function sourcLen(original) {
@@ -89,22 +112,34 @@ export function runInOrder(doLast, getLen){
     //set the next watch and listen
     let next = Observable.of({key});
 
+    // let has = (listener, name) => () => listener.hasObserver(name);
+
+    // let justTrue = () => true;
+
     return Observable.from(extendedData)
       .map((container, index, source) => {
-        let curr = next;
+        let currentMessage = next;
         let len = getLen(container);
+        //let bool = undefined;
 
         if (index + 1 < sourcLen(source)) {
+
           next = waitAndListen(listenOn, len, key);
+
+          // bool = has(listenOn, key);
+
         } else {
+
           // this might be a tiny memory leak
           next = null;
+
+          // bool = justTrue;
         }
 
         return Observable.zip(
-          curr,
+          currentMessage,
           Observable.of(container),
-          (message, data) => ({message, data})
+          (message, data) => ({message, data, listenOn})
         );
       }).concatAll();
   };

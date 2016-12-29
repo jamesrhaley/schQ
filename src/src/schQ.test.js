@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Mock } from './helpers';
+import { mocksmall, loadEmitter } from './helpers';
 import SchQ from './index';
 
 const containIn = (arr, times, what) => {
@@ -12,6 +12,8 @@ const containIn = (arr, times, what) => {
   }, 0);
 };
 
+let i = 0;
+
 describe('SchQ', () => {
   let midObservers,
     endObservers,
@@ -21,32 +23,32 @@ describe('SchQ', () => {
 
   before(function(done) {
     const key = 'process';
-    const schQ = new SchQ({lostData:2});
-    const mock = new Mock(schQ.emitter());
+    const schQ = new SchQ({
+      lostData : 2,
+      doLast : [[
+        ()=> {
+          /** it is possible for this to be called more than once */
+          if (i > 1) done();
+        }
+      ]]
+    });
 
+    const makePackage = loadEmitter(schQ.emitter());
+
+    const mock = mocksmall();
 
     const all = () => [
-      mock.array(3, { type: 'packed' }),
-      mock.object(1, { type: 'packed' }),
+      mock.array(3, { type: 'threeInARow' }),
+      mock.object(1, { type: 'oneInARow' }),
       mock.object(
         ['enter', 'update', 'post', 'exit'],
-        { type: 'packed' }
+        { type: 'fourInARow' }
       )
     ];
 
     const run = (j) =>schQ.loader(all(), key+j);
 
-    let i = 0;
-
     run(++i);
-
-    setTimeout(
-      () => {
-        let int = ++i;
-        run(int);
-      },
-      7
-    );
 
     setTimeout(
       () => {
@@ -58,7 +60,6 @@ describe('SchQ', () => {
     setTimeout(
       () => {
         endObservers = schQ.emitter().listSubjects();
-        done();
       },
       250
     );
@@ -68,19 +69,32 @@ describe('SchQ', () => {
       getArray.push(str);
     }
 
+    let numberState = 0;
+
     schQ
       .run()
+      .delay(0)
       .subscribe(
         x => {
           let {message, data} = x;
           let {key} = message;
 
+          if(message.key === 'process1') {
+            run(++i);
+          }
           pushResults(key);
+
+          if (message.events) {
+
+            numberState += message.events.length;
+          }
 
           passedData.push(message.events);
 
           data.forEach(fn => {
-            fn(key, {test:i});
+
+            fn(key, {test:i+numberState}, makePackage);
+
           });
         },
         (e) => console.error(e),
@@ -105,7 +119,7 @@ describe('SchQ', () => {
   });
 
   it('There should be unused data cause by the second push', () => {
-    expect( endObservers ).to.be.eql( [ '$__lost_data__' ] );
+    expect( endObservers.indexOf('$__lost_data__') >= 0 ).to.be.true;
   });
 
   it('Should have recived data back from cycle', () => {

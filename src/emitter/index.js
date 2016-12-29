@@ -50,8 +50,10 @@ class Emitter{
    *  Access the hasObserver property to check if subject has an observer.
    *  This comes in handy because subjects by nature are hot and if you 
    *  emit to a subject that does not have the observer you are emiting
-   *  on, there is not a subscriber to perform the side effects you wish
-   *  for in your program.  This is for testing.
+   *  too, there is not a subscriber to perform the side effects you wish
+   *  for in your program. It is quite possible for race conditions to 
+   *  occur and the event you are listening for to happen before rxjs 
+   *  registers the observer that will be listening for it.  
    *  
    *
    * @param {String} name - Name of variable
@@ -163,29 +165,7 @@ class Emitter{
     } 
 
     return this.subjects[fnName]
-      .subscribe(emittedData => {
-        handler(emittedData);
-      });
-  }
-  /**
-   * Emitter.subject:
-   *  Listen captures and handles events the same as Emitter.listen
-   *  with the point of having the access to the full Subject to be
-   *  able to write an Observable.create for onComplete and onError
-   *
-   * @param {String} name -> Name of variable
-   * @return {Subject} -> a Subject for the Observable subscribe
-   */
-  subject(name) {
-    const fnName = createKey(name);
-    const subjects = this.subjects;
-
-    if (!hasOwnProp.call(subjects, fnName)) {
-
-      this.subjects[fnName] = new Rx.Subject();
-    } 
-
-    return this.subjects[fnName];
+      .subscribe(handler);
   }
 
   /**
