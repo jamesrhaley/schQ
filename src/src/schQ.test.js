@@ -73,12 +73,11 @@ describe('SchQ', () => {
 
     schQ
       .run()
-      .delay(0)
       .subscribe(
         x => {
-          let {message, data} = x;
+          let {message, data, listenOn} = x;
           let {key} = message;
-
+          console.log(listenOn.hasObserver(key))
           if(message.key === 'process1') {
             run(++i);
           }

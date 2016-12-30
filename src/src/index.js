@@ -26,8 +26,7 @@ export function waitAndListen(emitter, times, key) {
         count += 1;
         // capture all returning data for use in next cycle
         capturedData.push(data);
-        // console.log('all the way inside')
-        // console.log('has inner',emitter.hasObserver(key))
+
         if (count >= times) {
 
           observer.onNext({key, events: capturedData });
@@ -39,8 +38,7 @@ export function waitAndListen(emitter, times, key) {
       onError :  observer.onError.bind(observer),
       onComplete :  observer.onCompleted.bind(observer)
     });
-    // console.log('did we get here')
-    // console.log('has sub',emitter.hasObserver(key))
+
     return () => {
 
       emitter.unsubscribe(key);
@@ -112,10 +110,6 @@ export function runInOrder(doLast, getLen){
     //set the next watch and listen
     let next = Observable.of({key});
 
-    // let has = (listener, name) => () => listener.hasObserver(name);
-
-    // let justTrue = () => true;
-
     return Observable.from(extendedData)
       .map((container, index, source) => {
         let currentMessage = next;
@@ -126,14 +120,11 @@ export function runInOrder(doLast, getLen){
 
           next = waitAndListen(listenOn, len, key);
 
-          // bool = has(listenOn, key);
-
         } else {
 
           // this might be a tiny memory leak
           next = null;
 
-          // bool = justTrue;
         }
 
         return Observable.zip(
@@ -254,7 +245,8 @@ class SchQ{
         const rio = this._runInOrder;
         return rio(this._emitter, processed, key);
       })
-      .switch();
+      .switch()
+      .delay(0);
   }
 }
 
