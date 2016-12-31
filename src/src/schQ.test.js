@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { mocksmall, loadEmitter } from './helpers';
+import { mocksmall, loadEmitter } from './mock';
 import SchQ from './index';
 
 const containIn = (arr, times, what) => {
@@ -75,9 +75,9 @@ describe('SchQ', () => {
       .run()
       .subscribe(
         x => {
-          let {message, data, listenOn} = x;
+          let {message, data} = x;
           let {key} = message;
-          console.log(listenOn.hasObserver(key))
+
           if(message.key === 'process1') {
             run(++i);
           }

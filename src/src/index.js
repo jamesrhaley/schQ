@@ -47,27 +47,6 @@ export function waitAndListen(emitter, times, key) {
     };
   });
 }
-/**
-
- */
-// export function pauseTill(testCase, throttleBy) {
-//   return Rx.Observable.create(observer => {
-//     var source = Rx.Observable
-//       .interval(throttleBy /* ms */)
-//       .subscribe(() => {
-//         // console.log(testCase())
-//         if (testCase()) {
-//           observer.onNext(true);
-//           observer.onCompleted();
-//         }
-//       });
-    
-//     return () => {
-//       source.dispose();
-//     };
-//   });
-// }
-
 
 /** goes into the rx prototype to get the length of the original source */
 function sourcLen(original) {
@@ -102,7 +81,7 @@ export function runInOrder(doLast, getLen){
    * @param {String} key - key to be id to listen on
    * @return {Observable} stream of operations to perform 
    */
-  return function (listenOn, data, key) {
+  return function (emitter, data, key) {
 
     // extend the data so there is data to pass with the zipped
     // container while waiting for the last event
@@ -118,7 +97,7 @@ export function runInOrder(doLast, getLen){
 
         if (index + 1 < sourcLen(source)) {
 
-          next = waitAndListen(listenOn, len, key);
+          next = waitAndListen(emitter, len, key);
 
         } else {
 
@@ -130,7 +109,7 @@ export function runInOrder(doLast, getLen){
         return Observable.zip(
           currentMessage,
           Observable.of(container),
-          (message, data) => ({message, data, listenOn})
+          (message, data) => ({message, data, emitter})
         );
       }).concatAll();
   };

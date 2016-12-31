@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import Emitter from './../emitter/index';
 import {runInOrder} from './index';
-import { Mock } from './helpers';
+import { Mock } from './mock';
 
 var rIO = runInOrder();
 var emitter = new Emitter();
