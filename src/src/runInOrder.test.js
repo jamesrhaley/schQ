@@ -23,7 +23,7 @@ describe('runInOrder', function () {
     .subscribe({
       onNext: (x) => {
 
-        let funcs = x.data;
+        let funcs = x.next;
 
         funcs.forEach(fn => {
           fn(key);

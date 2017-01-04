@@ -74,10 +74,15 @@ describe('SchQ', () => {
     schQ
       .run()
       .subscribe(
-        x => {
-          let {message, data} = x;
+        packet => {
+          let {
+            message, 
+            next
+            //emitter
+          } = packet;
           let {key} = message;
-
+          // console.log('after all', emitter.subjects['$'+key].observers)
+          //console.log(emitter.hasObserver(key));
           if(message.key === 'process1') {
             run(++i);
           }
@@ -90,7 +95,7 @@ describe('SchQ', () => {
 
           passedData.push(message.events);
 
-          data.forEach(fn => {
+          next.forEach(fn => {
 
             fn(key, {test:i+numberState}, makePackage);
 

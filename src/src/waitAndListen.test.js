@@ -3,7 +3,7 @@ import Emitter from './../emitter/index';
 import { waitAndListen } from './index';
 
 const emitter = new Emitter();
-const randomTime = () => Math.random()*1000;
+const randomTime = () => Math.random()*10;
 
 describe('waitForListen', () => {  
   let result1 = undefined;
@@ -53,7 +53,7 @@ describe('waitForListen', () => {
     // by checking if vars are no longer undefined
     // then call done
     let time = 0;
-    let interval = 250;
+    let interval = 25;
     let testInterval = setInterval(() => {
       if (result1 !== undefined && result2 !== undefined) {
 

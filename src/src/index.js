@@ -3,7 +3,24 @@ import Emitter from './../emitter/index';
 import processIncoming from './processIncoming';
 import validate from './validate';
 
+import { 
+  cacheGate,
+  justPass,
+  beforeThenAfter
+} from './initialState';
+
 const Observable = Rx.Observable;
+
+/** recreated hasObservers to mod to v5 */
+// if (!Rx.Subject.prototype.hasObservers) {
+//   Rx.Subject.prototype.hasObservers = function hasObservers() {
+//     if (this.isUnsubscribed) {
+//       throw new Rx.ObjectUnsubscribedError();
+//     }
+
+//     return this.observers.length > 0;
+//   };
+// }
 
 /**
  * waitAndListen:
@@ -17,41 +34,39 @@ const Observable = Rx.Observable;
  * @param {String} key -> key to be id to listen on
  */
 export function waitAndListen(emitter, times, key) {
+
   return Observable.create(observer => {
     let count = 0;
     let capturedData = [];
 
-    const subscription = emitter.listen(key, {
-      onNext :(data) => {
-        count += 1;
-        // capture all returning data for use in next cycle
-        capturedData.push(data);
+    const addListener = (handler) => emitter.listen(key, handler);
 
-        if (count >= times) {
+    const removeListener = () => emitter.unlisten(key);
 
-          observer.onNext({key, events: capturedData });
+    const subscription = Observable
+      .fromEventPattern( addListener, removeListener)
+      .subscribe({
+        onNext :(data) => {
+          count += 1;
+          // capture all returning data for use in next cycle
+          capturedData.push(data);
 
-          observer.onCompleted();
-        }
-      },
+          if (count >= times) {
 
-      onError :  observer.onError.bind(observer),
-      onComplete :  observer.onCompleted.bind(observer)
-    });
+            observer.onNext({key, events: capturedData });
 
-    return () => {
+            observer.onCompleted();
+          }
+        },
 
-      emitter.unsubscribe(key);
+        onError :  observer.onError.bind(observer),
+        onComplete :  observer.onCompleted.bind(observer)
+      });
 
-      subscription.dispose();
-    };
+    return () => subscription.dispose();
   });
 }
 
-/** goes into the rx prototype to get the length of the original source */
-function sourcLen(original) {
-  return original.source._iterable.length;
-}
 
 const last = [[() => {} ]];
 
@@ -90,27 +105,36 @@ export function runInOrder(doLast, getLen){
     let next = Observable.of({key});
 
     return Observable.from(extendedData)
-      .map((container, index, source) => {
+      .map((container, index) => {
         let currentMessage = next;
         let len = getLen(container);
         //let bool = undefined;
 
-        if (index + 1 < sourcLen(source)) {
+        if (index + 1 < extendedData.length) {
 
           next = waitAndListen(emitter, len, key);
 
         } else {
-
           // this might be a tiny memory leak
           next = null;
 
         }
 
-        return Observable.zip(
-          currentMessage,
-          Observable.of(container),
-          (message, data) => ({message, data, emitter})
-        );
+        const currentStream = Observable
+          .zip(
+            currentMessage,
+            Observable.of(container),
+            (message, next) => ({message, next})
+          );
+
+        const withEmitterStream = Observable
+          .combineLatest(
+            Observable.of(emitter),
+            currentStream,
+            (emitter, current) => Object.assign({}, {emitter}, current)
+          );
+
+        return withEmitterStream;
       }).concatAll();
   };
 }
@@ -133,18 +157,19 @@ const baseSetting = {
  * @example
  * // initialize SchQ
  * let schQ = new SchQ();
- * // cache emitter to emit
- * let cacheEmitter = schQ.emitter();
+ *
  * // load data and a key
- * schQ.loader([[func,func],[func]], 'data')
+ * schQ.loader([[func,func],[func]], 'data');
+ *
  * // run
- * let subscriber = schQ.run()
+ * let subscriber = schQ.run();
+ *
  * // subcribe
- * subscriber.subscribe(next => {
- *   let {message, data} = next;
+ * subscriber.subscribe(packet => {
+ *   let {message, next, emitter} = packet;
  *   let {key} = message;
  *   data.forEach(item => {
- *      item(cacheEmitter.emit({key}));
+ *      item(emitter.emit({key}));
  *   });
  * });
  */
@@ -163,6 +188,7 @@ class SchQ{
    *   interable. i.e. default is an Array of Arrays of Functions
    */
   constructor(config=baseSetting) {
+    // update any basesetting a user wants changed
     const allConfig = validate(baseSetting, config);
 
     let {lostData, preprocess, doLast, checkout} = allConfig;
@@ -206,8 +232,8 @@ class SchQ{
    *   before pushed down the pipeline.  Once you subscribe to the 
    *   pipeline this key will available via {}.message to emit on. 
    */
-  loader(data, key) {
-    this._loadSubject.onNext({data, key});
+  loader(next, key) {
+    this._loadSubject.onNext({next, key});
   }
 
   /**
@@ -219,13 +245,20 @@ class SchQ{
   run() {
     return this._loadSubject
       .map(loaded => {
-        const {data, key} = loaded;
-        const processed = this._processData(data);
-        const rio = this._runInOrder;
-        return rio(this._emitter, processed, key);
+        const {next, key} = loaded;
+        const processed = this._processData(next);
+        const stateOfEmitter = beforeThenAfter(cacheGate, justPass);
+
+        return this._runInOrder(this._emitter, processed, key)
+        .map((data)=>
+          stateOfEmitter(
+            data,
+            data.emitter,
+            (e) => e.hasObserver(key))
+          ).concatAll();
       })
-      .switch()
-      .delay(0);
+      .switch();
+
   }
 }
 

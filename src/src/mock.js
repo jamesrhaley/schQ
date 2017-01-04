@@ -24,7 +24,6 @@ export class Mock{
 
       testObject[objectKey] = (key, uniquePackage) => 
         setTimeout(() => {
-          //console.log('does it have it??',this._emitter.hasObserver(key));
           this._emitter.emit(
             key,
             Object.assign({}, refPackage, uniquePackage),

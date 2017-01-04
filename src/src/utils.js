@@ -27,3 +27,7 @@ export function isArray(x) {
 export function isFunction(x) {
   return typeof x === 'function';
 }
+
+export function isPromise(x) {
+  return x.toString() === '[object Promise]';
+}
