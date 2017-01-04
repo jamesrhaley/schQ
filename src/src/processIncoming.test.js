@@ -1,7 +1,8 @@
 import {expect} from 'chai';
 import processIncoming from './processIncoming';
 import Emitter from './../emitter/index';
-import { Mock } from './helpers';
+import { Mock } from './mock';
+import { isArray } from './utils';
 
 var emitter = new Emitter();
 var mock = new Mock(emitter);
@@ -22,13 +23,13 @@ let badObject = [{enter:'str'}];
 
 describe('incomingProcess', () => {
   it('Should be an Array of Arrays', () => {
-    expect(Array.isArray(all[0])).to.be.true;
-    expect(Array.isArray(all[1])).to.be.true;
-    expect(Array.isArray(all[2])).to.be.true;
-    expect(Array.isArray(all[3])).to.be.true;
-    expect(Array.isArray(all[4])).to.be.true;
-    expect(Array.isArray(all[5])).to.be.true;
-    expect(Array.isArray(all[6])).to.be.true;
+    expect( isArray(all[0]) ).to.be.true;
+    expect( isArray(all[1]) ).to.be.true;
+    expect( isArray(all[2]) ).to.be.true;
+    expect( isArray(all[3]) ).to.be.true;
+    expect( isArray(all[4]) ).to.be.true;
+    expect( isArray(all[5]) ).to.be.true;
+    expect( isArray(all[6]) ).to.be.true;
     expect(all[7] === undefined).to.be.true;
   });
 

@@ -1,7 +1,4 @@
-const isObject = (item) => Object.prototype
-  .toString.call(item) === '[object Object]';
-
-const isFunction = (item) => item instanceof Function;
+import { isPlainObject, isFunction, isArray } from './utils';
 
 // verify makes sure nested items are Functions
 // this process needs a hook to add custom verification.
@@ -20,7 +17,7 @@ export default function processIncoming(arr) {
   var result = [];
 
   arr.forEach(item => {
-    if (Array.isArray(item)) {
+    if (isArray(item)) {
 
       item.forEach(each => {
         verify(each, 'Nested Arrays');
@@ -34,7 +31,7 @@ export default function processIncoming(arr) {
       result.push([item]);
     }
 
-    else if (isObject(item)) {
+    else if (isPlainObject(item)) {
 
       Object.keys(item).forEach(key => {
 

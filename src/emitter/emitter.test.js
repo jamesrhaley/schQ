@@ -8,7 +8,7 @@ describe('emitter', () => {
     subscription,
     hasObserve,
     firstEmitter,
-    unsubscribedEmitter,
+    unlistenEmitter,
     threeEmitters,
     oneEmitterGone,
     allEmittersRemoved,
@@ -36,10 +36,10 @@ describe('emitter', () => {
     firstEmitter = emitter.listSubjects();
 
     // dispose all listener
-    emitter.unsubscribe('data');
+    emitter.unlisten('data');
 
     // verify all listeners are removed
-    unsubscribedEmitter = emitter.listSubjects();
+    unlistenEmitter = emitter.listSubjects();
 
     // add three listeners
     for (let i = 0; i < 3; i++){
@@ -53,12 +53,12 @@ describe('emitter', () => {
     threeEmitters = emitter.listSubjects();
 
     // remove one emitter
-    emitter.unsubscribe('data1');
+    emitter.unlisten('data1');
 
     oneEmitterGone = emitter.listSubjects();
 
     // remove remaining emitters
-    emitter.unsubscribeAll();
+    emitter.unlistenAll();
 
     allEmittersRemoved = emitter.listSubjects();
 
@@ -88,12 +88,12 @@ describe('emitter', () => {
     expect(hasObserve).to.be.true;
   });
 
-  it('Before unsubscribe emitter has a the key `$data`', () => {
+  it('Before unlisten emitter has a the key `$data`', () => {
     expect(firstEmitter).to.eql(['$data']);
   });
 
-  it('After unsubscribe emitter lacks any key', () => {
-    expect(unsubscribedEmitter).to.eql([]);
+  it('After unlisten emitter lacks any key', () => {
+    expect(unlistenEmitter).to.eql([]);
   });
 
   it('There are now three keys of three emitters', () => {

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { mocksmall, loadEmitter } from './helpers';
+import { mocksmall, loadEmitter } from './mock';
 import SchQ from './index';
 
 const containIn = (arr, times, what) => {
@@ -73,12 +73,16 @@ describe('SchQ', () => {
 
     schQ
       .run()
-      .delay(0)
       .subscribe(
-        x => {
-          let {message, data} = x;
+        packet => {
+          let {
+            message, 
+            next
+            //emitter
+          } = packet;
           let {key} = message;
-
+          // console.log('after all', emitter.subjects['$'+key].observers)
+          //console.log(emitter.hasObserver(key));
           if(message.key === 'process1') {
             run(++i);
           }
@@ -91,7 +95,7 @@ describe('SchQ', () => {
 
           passedData.push(message.events);
 
-          data.forEach(fn => {
+          next.forEach(fn => {
 
             fn(key, {test:i+numberState}, makePackage);
 

@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import Emitter from './../emitter/index';
 import {runInOrder} from './index';
-import { Mock } from './helpers';
+import { Mock } from './mock';
 
 var rIO = runInOrder();
 var emitter = new Emitter();
@@ -23,7 +23,7 @@ describe('runInOrder', function () {
     .subscribe({
       onNext: (x) => {
 
-        let funcs = x.data;
+        let funcs = x.next;
 
         funcs.forEach(fn => {
           fn(key);

@@ -1,3 +1,5 @@
+import { isArray } from './utils';
+
 /**
  * @private
  */
@@ -14,7 +16,7 @@ export class Mock{
 
   object(groups, refPackage) {
     var testObject = {},
-      ifArray = Array.isArray(groups),
+      ifArray = isArray(groups),
       count = ifArray ? groups.length : groups;
 
     for (let i = 0; i < count; i++) {
@@ -22,7 +24,6 @@ export class Mock{
 
       testObject[objectKey] = (key, uniquePackage) => 
         setTimeout(() => {
-          //console.log('does it have it??',this._emitter.hasObserver(key));
           this._emitter.emit(
             key,
             Object.assign({}, refPackage, uniquePackage),
@@ -59,7 +60,7 @@ export const mocksmall = function(){
   return {
     object : function(groups, refPackage) {
       let build = {};
-      let ifArray = Array.isArray(groups);
+      let ifArray = isArray(groups);
       let count = ifArray ? groups.length : groups;
 
       for (let i = 0; i < count; i++) {

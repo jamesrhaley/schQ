@@ -145,7 +145,7 @@ class Emitter{
    *
    * @param {String} name -> Name of variable
    * @param {Function} handler -> A function to handle events
-   * @return {Function} -> A unsubscribe function via varName.dispose()
+   * @return {Function} -> A unlisten function via varName.dispose()
    * @example
    * let emitter = new Emitter();
    * 
@@ -169,8 +169,8 @@ class Emitter{
   }
 
   /**
-   * Emitter.unsubscribe:
-   *  Unsubscribe from a single Subject
+   * Emitter.unlisten:
+   *  unlisten from a single Subject
    *
    * @param {String} name -> Name of variable
    * @example
@@ -182,12 +182,12 @@ class Emitter{
    * console.log(emitter.listSubjects());
    * // => ['$data1', '$data2']
    *
-   * emitter.unsubscribe('data1');
+   * emitter.unlisten('data1');
    *
    * console.log(emitter.listSubjects());
    * // => ['$data2']
    */
-  unsubscribe(name) {
+  unlisten(name) {
     const fnName = createKey(name);
     const subjects = this.subjects;
     const remainingSubjects = {};
@@ -206,8 +206,8 @@ class Emitter{
   }
 
   /**
-   * Emitter.unsubscribeAll:
-   *  Unsubscribe from all Subjects
+   * Emitter.unlistenAll:
+   *  unlisten from all Subjects
    * @example
    * let emitter = new Emitter();
    * 
@@ -218,12 +218,12 @@ class Emitter{
    * console.log(emitter.listSubjects());
    * // => ['$data1', '$data2', '$data3']
    *
-   * emitter.unsubscribeAll();
+   * emitter.unlistenAll();
    *
    * console.log(emitter.listSubjects());
    * // => []
    */
-  unsubscribeAll() {
+  unlistenAll() {
     const subjects = this.subjects;
     const keys = Object.keys(subjects);
 
