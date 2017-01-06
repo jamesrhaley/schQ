@@ -16,6 +16,8 @@ describe('runInOrder', function () {
   ];
 
   let allDone = false;
+  let allEvents = [];
+  let functionCount = 0;
 
   before(function (done) {
     //set do last
@@ -31,19 +33,41 @@ describe('runInOrder', function () {
     const arrFrom = rio(emitter, data, key);
 
     arrFrom.subscribe((x) => {
-      let funcs = x.next;
+      let {next, message} = x;
 
-      funcs.forEach(fn => {
+      if (message.hasOwnProperty('events')) {
+        allEvents.push(message.events);
+      }
+
+      next.forEach(fn => {
+        functionCount++;
+
         fn(key);
       });
     });
-    
   });
 
   it('Test completes', () => {
     expect(allDone).to.be.true;
   });
-  
+
+  it('3 Events stream should have returned via event emitter', () => {
+    expect(allEvents.length).to.equal(3);
+  });
+
+  it('The first event should have 3 events', () => {
+    expect(allEvents[0].length).to.equal(3);
+  });
+
+  it('The next two events only had one occur', () => {
+    expect(allEvents[1].length).to.equal(1);
+    expect(allEvents[2].length).to.equal(1);
+  });
+
+  it('A total of 6 functions occured including doLast', () => {
+    expect(functionCount).to.equal(6);
+  });
+
   it('Should use default settings', () => {
     expect(runInOrder()(emitter, data, key)).to.be.truthy;
   });

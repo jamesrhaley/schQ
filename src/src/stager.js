@@ -92,10 +92,14 @@ export function stager(schQstream, emitter, key, getLen) {
 
             let next = queue.shift();
 
+            let events = capturedData;
+            
             wait = getLen(next);
             
+            capturedData = [];
+
             observer.onNext({
-              message: { key, events: capturedData },
+              message: { key, events },
               next,
               emitter
             });
