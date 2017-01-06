@@ -73,9 +73,9 @@ export function waitAndListen(emitter, times, key) {
 }
 
 
-const last = [[() => {} ]];
+export const last = [[() => {} ]];
 
-const len = (obj) => obj.length;
+export const len = (obj) => obj.length;
 
 /**
  * runInOrder:
