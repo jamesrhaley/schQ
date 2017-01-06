@@ -1,46 +1,50 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import Emitter from './../emitter/index';
-import {runInOrder} from './index';
+import { runInOrder } from './index';
 import { Mock } from './mock';
 
-var rIO = runInOrder();
 var emitter = new Emitter();
 var mock = new Mock(emitter);
 
 describe('runInOrder', function () {
   const key = 'data3';
-  let groupArray1 = mock.array(3, { type: 'packed' });
-  let groupArray2 = mock.array(1, { type: 'packed' });
-  let groupArray3 = mock.array(1, { type: 'packed' });
+
+  const data = [
+    mock.array(3, { type: 'packed' }),
+    mock.array(1, { type: 'packed' }),
+    mock.array(1, { type: 'packed' })
+  ];
 
   let allDone = false;
 
   before(function (done) {
-    const data = [groupArray1, groupArray2, groupArray3];
-    const arrFrom = rIO(emitter, data, key);
+    //set do last
+    const rio = runInOrder([
+      [
+        () => {
+          allDone = true;
+          done();
+        }
+      ]
+    ]);
 
-    arrFrom
-    .subscribe({
-      onNext: (x) => {
+    const arrFrom = rio(emitter, data, key);
 
-        let funcs = x.next;
+    arrFrom.subscribe((x) => {
+      let funcs = x.next;
 
-        funcs.forEach(fn => {
-          fn(key);
-        });
-      },
-      onError: (e) => console.error(e),
-      onCompleted: () => {
-        
-        allDone = true;
-        
-        done();
-      }
+      funcs.forEach(fn => {
+        fn(key);
+      });
     });
     
   });
 
   it('Test completes', () => {
     expect(allDone).to.be.true;
+  });
+  
+  it('Should use default settings', () => {
+    expect(runInOrder()(emitter, data, key)).to.be.truthy;
   });
 });
