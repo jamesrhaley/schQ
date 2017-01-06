@@ -4,3 +4,4 @@ dist
 doc
 node_modules
 spec
+npm-debug.log

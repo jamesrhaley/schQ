@@ -8,29 +8,29 @@ var mock = new Mock(emitter);
 
 describe('runInOrder', function () {
   const key = 'data3';
-  let groupArray1 = mock.array(3, { type: 'packed' });
-  let groupArray2 = mock.array(1, { type: 'packed' });
-  let groupArray3 = mock.array(1, { type: 'packed' });
+
+  const data = [
+    mock.array(3, { type: 'packed' }),
+    mock.array(1, { type: 'packed' }),
+    mock.array(1, { type: 'packed' })
+  ];
 
   let allDone = false;
 
   before(function (done) {
     //set do last
-    const rIO = runInOrder([
+    const rio = runInOrder([
       [
-        ()=>{
+        () => {
           allDone = true;
           done();
         }
       ]
     ]);
 
-    const data = [groupArray1, groupArray2, groupArray3];
+    const arrFrom = rio(emitter, data, key);
 
-    const arrFrom = rIO(emitter, data, key);
-
-    arrFrom
-    .subscribe((x) => {
+    arrFrom.subscribe((x) => {
       let funcs = x.next;
 
       funcs.forEach(fn => {
@@ -42,5 +42,9 @@ describe('runInOrder', function () {
 
   it('Test completes', () => {
     expect(allDone).to.be.true;
+  });
+  
+  it('Should use default settings', () => {
+    expect(runInOrder()(emitter, data, key)).to.be.truthy;
   });
 });
