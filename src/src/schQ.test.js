@@ -19,7 +19,8 @@ describe('SchQ', () => {
     endObservers,
     array1 = [],
     array2 = [],
-    passedData = [];
+    passedData = [],
+    count;
 
   before(function(done) {
     const key = 'process';
@@ -50,20 +51,6 @@ describe('SchQ', () => {
 
     run(++i);
 
-    setTimeout(
-      () => {
-        midObservers = schQ.emitter().listSubjects();
-      },
-      8
-    );
-
-    setTimeout(
-      () => {
-        endObservers = schQ.emitter().listSubjects();
-      },
-      250
-    );
-
     function pushResults(str) {
       let getArray = str === 'process1' ? array1 : array2;
       getArray.push(str);
@@ -71,6 +58,8 @@ describe('SchQ', () => {
 
     let numberState = 0;
 
+    count = 0;
+    
     schQ
       .run()
       .subscribe(
@@ -80,12 +69,24 @@ describe('SchQ', () => {
             next
             //emitter
           } = packet;
+
+          count++;
+
           let {key} = message;
           // console.log('after all', emitter.subjects['$'+key].observers)
           //console.log(emitter.hasObserver(key));
-          if(message.key === 'process1') {
+          if (message.key === 'process1' && count === 2) {
             run(++i);
           }
+
+          if (count === 3) {
+            midObservers = schQ.emitter().listSubjects();
+          }
+
+          if (count === 9) {
+            endObservers = schQ.emitter().listSubjects();
+          }
+
           pushResults(key);
 
           if (message.events) {
@@ -106,8 +107,12 @@ describe('SchQ', () => {
       );
   });
 
-  it('Fist push of data should have stopped before completing', () => {
-    expect( array1.length < 7 ).to.be.true;
+  it('Total action should be 9', () => {
+    expect( count ).to.be.equal(9);
+  });
+
+  it('Fist push of data should cancel after two events', () => {
+    expect( array1.length ).to.equal( 2 );
   });
 
   it('Second push of data should have run 7 times', () => {

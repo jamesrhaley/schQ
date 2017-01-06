@@ -1,9 +1,8 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import Emitter from './../emitter/index';
-import {runInOrder} from './index';
+import { runInOrder } from './index';
 import { Mock } from './mock';
 
-var rIO = runInOrder();
 var emitter = new Emitter();
 var mock = new Mock(emitter);
 
@@ -16,26 +15,27 @@ describe('runInOrder', function () {
   let allDone = false;
 
   before(function (done) {
+    //set do last
+    const rIO = runInOrder([
+      [
+        ()=>{
+          allDone = true;
+          done();
+        }
+      ]
+    ]);
+
     const data = [groupArray1, groupArray2, groupArray3];
+
     const arrFrom = rIO(emitter, data, key);
 
     arrFrom
-    .subscribe({
-      onNext: (x) => {
+    .subscribe((x) => {
+      let funcs = x.next;
 
-        let funcs = x.next;
-
-        funcs.forEach(fn => {
-          fn(key);
-        });
-      },
-      onError: (e) => console.error(e),
-      onCompleted: () => {
-        
-        allDone = true;
-        
-        done();
-      }
+      funcs.forEach(fn => {
+        fn(key);
+      });
     });
     
   });

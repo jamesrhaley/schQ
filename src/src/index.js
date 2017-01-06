@@ -2,7 +2,12 @@ import Rx from 'rx';
 import Emitter from './../emitter/index';
 import processIncoming from './processIncoming';
 import validate from './validate';
-
+import { 
+  eventListener,
+  queueDump,
+  stageStream,
+  stager
+} from './stager';
 import { 
   cacheGate,
   justPass,
@@ -36,7 +41,7 @@ const Observable = Rx.Observable;
 export function waitAndListen(emitter, times, key) {
 
   return Observable.create(observer => {
-    let count = 0;
+    let waiting = 0;
     let capturedData = [];
 
     const addListener = (handler) => emitter.listen(key, handler);
@@ -47,11 +52,11 @@ export function waitAndListen(emitter, times, key) {
       .fromEventPattern( addListener, removeListener)
       .subscribe({
         onNext :(data) => {
-          count += 1;
+          waiting += 1;
           // capture all returning data for use in next cycle
           capturedData.push(data);
 
-          if (count >= times) {
+          if (waiting >= times) {
 
             observer.onNext({key, events: capturedData });
 
@@ -97,45 +102,13 @@ export function runInOrder(doLast, getLen){
    * @return {Observable} stream of operations to perform 
    */
   return function (emitter, data, key) {
-
-    // extend the data so there is data to pass with the zipped
-    // container while waiting for the last event
+    // extend the data for final reporting event
     const extendedData = data.slice(0).concat(doLast);
-    //set the next watch and listen
-    let next = Observable.of({key});
+    const queueStream = queueDump( extendedData );
+    const listenerStream = eventListener( emitter, key );
+    const schQStream = stageStream(queueStream, listenerStream);
 
-    return Observable.from(extendedData)
-      .map((container, index) => {
-        let currentMessage = next;
-        let len = getLen(container);
-        //let bool = undefined;
-
-        if (index + 1 < extendedData.length) {
-
-          next = waitAndListen(emitter, len, key);
-
-        } else {
-          // this might be a tiny memory leak
-          next = null;
-
-        }
-
-        const currentStream = Observable
-          .zip(
-            currentMessage,
-            Observable.of(container),
-            (message, next) => ({message, next})
-          );
-
-        const withEmitterStream = Observable
-          .combineLatest(
-            Observable.of(emitter),
-            currentStream,
-            (emitter, current) => Object.assign({}, {emitter}, current)
-          );
-
-        return withEmitterStream;
-      }).concatAll();
+    return stager(schQStream, emitter, key, getLen);
   };
 }
 
