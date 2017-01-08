@@ -1,12 +1,14 @@
 import { isArray } from './utils';
 
 /**
- * @private
+ * for esdoc
+ * @ignore
  */
 export var randomTime = () => Math.random()*100;
 
 /**
- * @private
+ * for esdoc
+ * @ignore
  */
 export class Mock{
   constructor(emitter){
@@ -55,6 +57,10 @@ export class Mock{
   }
 }
 
+/**
+ * for esdoc
+ * @ignore
+ */
 export const mocksmall = function(){
 
   return {
@@ -91,6 +97,10 @@ export const mocksmall = function(){
   };
 };
 
+/**
+ * for esdoc
+ * @ignore
+ */
 export function loadEmitter(emitter) {
   return (key, oldpack, newPack) => {
     return setTimeout( 

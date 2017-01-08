@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import processIncoming from './processIncoming';
+import preprocess from './preprocess';
 import Emitter from './../emitter/index';
 import { Mock } from './mock';
 import { isArray } from './utils';
@@ -16,7 +16,7 @@ let group3 = mock.object(
   { type: 'packed' }
 );
 
-let all = processIncoming([group1, group2, group3, () => {}]);
+let all = preprocess([group1, group2, group3, () => {}]);
 
 let badArray = [[1,2,3], group2];
 let badObject = [{enter:'str'}];
@@ -34,15 +34,15 @@ describe('incomingProcess', () => {
   });
 
   it('Should error when an Array index is not a function', () => {
-    expect(() => processIncoming(badArray)).to.throw(/Array/);
+    expect(() => preprocess(badArray)).to.throw(/Array/);
   });
 
   it('Should error when an Object value is not a function', () => {
-    expect(() => processIncoming(badObject)).to.throw(/Object/);
+    expect(() => preprocess(badObject)).to.throw(/Object/);
   });
 
   it('Should be an Array of Arrays, Objects, or Functions', () => {
-    expect(() => processIncoming([1,2,3])).to.throw(/Array of Objects, Arrays, or Functions/);
+    expect(() => preprocess([1,2,3])).to.throw(/Array of Objects, Arrays, or Functions/);
   });
 });
 

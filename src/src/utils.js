@@ -1,4 +1,5 @@
 /**
+ * for esdoc
  * @ignore
  */
 export function objectValues(obj) {
@@ -7,6 +8,7 @@ export function objectValues(obj) {
 }
 
 /**
+ * for esdoc
  * @ignore
  */
 export function isPlainObject(item) {
@@ -15,6 +17,7 @@ export function isPlainObject(item) {
 }
 
 /**
+ * for esdoc
  * @ignore
  */
 export function isArray(x) {
@@ -22,12 +25,17 @@ export function isArray(x) {
 }
 
 /**
+ * for esdoc
  * @ignore
  */
 export function isFunction(x) {
   return typeof x === 'function';
 }
 
+/**
+ * for esdoc
+ * @ignore
+ */
 export function isPromise(x) {
   return x.toString() === '[object Promise]';
 }

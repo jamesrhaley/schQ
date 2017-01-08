@@ -8,9 +8,9 @@ function createKey(name) {
 }
 
 /**
- * Emitter Object of event emitters that use observable to transmit data
- * based off of the example at https://goo.gl/gw1Z3I with a few more 
- * bells and whistles.
+ * Object of event emitters that use observable to transmit data based off
+ * of the example at https://goo.gl/gw1Z3I with a few more bells and 
+ * whistles.
  *
  * @example
  * let emitter = new Emitter();
@@ -24,11 +24,14 @@ function createKey(name) {
  * 
  * // Destroy the subscription
  * subscription.dispose();
+ *
+ * @todo
+ * write lost data method for events for testing.
  */
 class Emitter{
   /**
-   * @param {Number} [lostCount=10] - Number of event to catpture 
-   *   if an event if being emitted but not subscribed.  
+   * @param {Number} [lostCount=10] - Number of events to capture if an 
+   *   event if being emitted but not subscribed. 
    */
   constructor(lostCount=10) {
     /**
@@ -48,13 +51,7 @@ class Emitter{
   /**
    * Emitter.hasObserver:
    *  Access the hasObserver property to check if subject has an observer.
-   *  This comes in handy because subjects by nature are hot and if you 
-   *  emit to a subject that does not have the observer you are emiting
-   *  too, there is not a subscriber to perform the side effects you wish
-   *  for in your program. It is quite possible for race conditions to 
-   *  occur and the event you are listening for to happen before rxjs 
-   *  registers the observer that will be listening for it.  
-   *  
+   *  This comes in handy in testing.
    *
    * @param {String} name - Name of variable
    * @return {Boolean}
@@ -103,8 +100,8 @@ class Emitter{
    * Emitter.emit:
    *  Emits event to a subscribed listener
    *
-   * @param {String} name -> Name of variable
-   * @param {Any} data -> Any Data to transmit.. this should be limited 
+   * @param {String} name - Name of variable
+   * @param {*} data - Any value to transmit
    * @example
    * let emitter = new Emitter();
    * 
@@ -143,9 +140,9 @@ class Emitter{
    *  function.  It is the subscribe method of an observable.  If you wish
    *  to handle error and have a complete function use method subject 
    *
-   * @param {String} name -> Name of variable
-   * @param {Function} handler -> A function to handle events
-   * @return {Function} -> A unlisten function via varName.dispose()
+   * @param {String} name - Name of variable
+   * @param {Function} handler - A function to handle events
+   * @return {Function} - A unlisten function via varName.dispose()
    * @example
    * let emitter = new Emitter();
    * 
@@ -172,7 +169,7 @@ class Emitter{
    * Emitter.unlisten:
    *  unlisten from a single Subject
    *
-   * @param {String} name -> Name of variable
+   * @param {String} name - Name of variable
    * @example
    * let emitter = new Emitter();
    * 
@@ -208,6 +205,7 @@ class Emitter{
   /**
    * Emitter.unlistenAll:
    *  unlisten from all Subjects
+   *
    * @example
    * let emitter = new Emitter();
    * 
