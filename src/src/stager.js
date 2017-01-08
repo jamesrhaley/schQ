@@ -54,6 +54,16 @@ export function stageStream(queueStream, listenerStream) {
   return queueStream.merge(listenerStream);
 }
 
+/**
+ * stager:
+ *
+ * @private
+ * @param {Observable} schQstream -> a stream of events
+ * @param {Emitter} emitter -> An event Listener
+ * @param {String} key -> key which data is being emitted on
+ * @param {Function} getLen -> a count of the number of opperation to 
+ *   listen for till next the stage is push.
+ */
 export function stager(schQstream, emitter, key, getLen) {
   return Observable.create(observer => {
     let started = true;

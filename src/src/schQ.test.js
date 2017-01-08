@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { mocksmall, loadEmitter } from './mock';
 import SchQ from './index';
-import { last, len } from './index';
+import { doLast, checkout } from './index';
 
 const containIn = (arr, times, what) => {
   return arr.reduce((pre, curr) => {
@@ -159,13 +159,13 @@ describe('SchQ', () => {
   });
 });
 
-describe('last and len', () => {
+describe('doLast and checkout', () => {
 
-  it('last should return undefined', () => {
-    expect( last[0][0]() ).to.equal( undefined );    
+  it('doLast should return undefined', () => {
+    expect( doLast[0][0]() ).to.equal( undefined );    
   });
 
-  it('len should get the length of an array', () => {
-    expect( len(last) ).to.equal( 1 );
+  it('checkout should get the length of an array', () => {
+    expect( checkout(doLast) ).to.equal( 1 );
   });
 });

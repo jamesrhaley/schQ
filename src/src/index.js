@@ -1,6 +1,6 @@
 import Rx from 'rx';
 import Emitter from './../emitter/index';
-import processIncoming from './processIncoming';
+import preprocess from './preprocess';
 import validate from './validate';
 import { 
   eventListener,
@@ -72,10 +72,37 @@ export function waitAndListen(emitter, times, key) {
   });
 }
 
+/**
+ * When using schQ, you will write a last which is an array of what you
+ * wish to happen after your sequence completes.  The default is a noop
+ * ```
+ * const last = [[() => {} ]];
+ * ```
+ *
+ * @type {Array} 
+ * @example
+ * const schq = new SchQ({
+ *   last: [{type:'done', opperation: () => console.log('done')}]
+ * });
+ */
+export const doLast = [[() => {} ]];
 
-export const last = [[() => {} ]];
-
-export const len = (obj) => obj.length;
+/**
+ * When using schQ, you will write a checkout function which is a function to 
+ * count how many opperations will be performed before the next stage of 
+ * sequence push to be performed. The default just gets the length of an 
+ * array.
+ * ```
+ * const checkout = (arr) => arr.length;
+ * ```
+ * @param {(Object|Array)} arr - get opperation count
+ * @return {Number}
+ * @example
+ * const schq = new SchQ({
+ *   checkout: (obj) => obj.opperation.length
+ * });
+ */
+export const checkout = (arr) => arr.length;
 
 /**
  * runInOrder:
@@ -91,10 +118,10 @@ export const len = (obj) => obj.length;
  */
  // I still believe I should be using Observable.create here.
  // I should revist to test for memory leaks
-export function runInOrder(doLast, getLen){
-  doLast = typeof doLast !== 'undefined' ? doLast : last;
+export function runInOrder(last, getLen){
+  last = typeof last !== 'undefined' ? last : doLast;
 
-  getLen = typeof getLen !== 'undefined' ? getLen : len;
+  getLen = typeof getLen !== 'undefined' ? getLen : checkout;
   /**
    * @param {Emitter} emitter - RxEventEmitter
    * @param {Array} data - an Array of Arrays
@@ -103,7 +130,7 @@ export function runInOrder(doLast, getLen){
    */
   return function (emitter, data, key) {
     // extend the data for final reporting event
-    const extendedData = data.slice(0).concat(doLast);
+    const extendedData = data.slice(0).concat(last);
     const queueStream = queueDump( extendedData );
     const listenerStream = eventListener( emitter, key );
     const schQStream = stageStream(queueStream, listenerStream);
@@ -114,9 +141,9 @@ export function runInOrder(doLast, getLen){
 
 const baseSetting = {
   lostData : 0,
-  preprocess : processIncoming,
-  doLast : last,
-  checkout: len
+  preprocess,
+  doLast,
+  checkout
 };
 
 
@@ -129,7 +156,19 @@ const baseSetting = {
  * @access public
  * @example
  * // initialize SchQ
- * let schQ = new SchQ();
+ * let config = {
+ *    // schQ intentionally loses data but if you need to test what that 
+ *    // data is, set this to a the amount of history you wish to track
+ *    lostData : 0,
+ *    // a function to make a consistent array
+ *    preprocess: (array) => {...do something},
+ *    // what will happen last after sequence is done
+ *    doLast: [[()=>console.log('done')]],
+ *    // count items out for process
+ *    checkout: (eachObject) => eachObject.opperation.length
+ * };
+ *
+ * let schQ = new SchQ(config);
  *
  * // load data and a key
  * schQ.loader([[func,func],[func]], 'data');
@@ -138,27 +177,28 @@ const baseSetting = {
  * let subscriber = schQ.run();
  *
  * // subcribe
- * subscriber.subscribe(packet => {
- *   let {message, next, emitter} = packet;
- *   let {key} = message;
- *   data.forEach(item => {
- *      item(emitter.emit({key}));
+ * subscriber
+ *   .subscribe(packet => {
+ *     let {message, next, emitter} = packet;
+ *     let {key} = message;
+ *     data.forEach(item => {
+ *       // key is 'data'
+ *       item(emitter.emit({key}));
+ *     });
  *   });
- * });
  */
 class SchQ{
   /**
    * @access public
    * @param {Object} [config=baseSetting] - Object of arguments
-   * @param {Function} [config.checkout=len] - how schQ know how many 
-   *   items out preforming operations. i.e. default gets the length of 
-   *   each Array of Functions created by processIncoming
-   * @param {Function} [config.doLast=last] - what is performed when all 
+   * @param {Function} [config.checkout=checkout] - how schQ know how many 
+   *   operations are outstanding before pushing the next event
+   * @param {Function} [config.doLast=doLast] - what is performed when all 
    *   process are finished. i.e. default is () => {}
    * @param {Number} [config.lostData=0] - Set the number of lost data
    *   items to track for tests or have another use cases
-   * @param {Function} [config.preprocess=processIncoming] - create a 
-   *   interable. i.e. default is an Array of Arrays of Functions
+   * @param {Function} [config.preprocess=preprocess] - create a interable
+   *   i.e. default is an Array of Arrays of Functions
    */
   constructor(config=baseSetting) {
     // update any basesetting a user wants changed
@@ -199,9 +239,9 @@ class SchQ{
    *  pushes data to the pipline and gives the event listener 
    *  a key to listen on.
    *
-   * @param {Array} data -> an Array of Arrays that pushes each
+   * @param {Array} next - an Array of Arrays that pushes each
    *   nested array to the subscribe of the like a queue.
-   * @param {String} key -> This key is used to subscribe to an event
+   * @param {String} key - This key is used to subscribe to an event
    *   before pushed down the pipeline.  Once you subscribe to the 
    *   pipeline this key will available via {}.message to emit on. 
    */
