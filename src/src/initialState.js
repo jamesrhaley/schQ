@@ -49,7 +49,7 @@ export function cacheGate(appData, refData, stateCheck){
 /**
  * justPass:
  *  Is used in conjunction with `cacheGate` and replaces its functionality
- *  once an initial state of the appication is reach.  It only passes 
+ *  once initial state of the application is reached.  It only passes 
  *  data.
  *
  * @private
@@ -61,9 +61,8 @@ export function justPass(appData) {
 
 /**
  * beforeThenAfter:
- *  Is used in conjunction with `cacheGate` and replaces its functionality
- *  once an initial state of the appication is reach.  It only passes 
- *  data.
+ * a function that nullifies the first argument after a state is reached
+ * to never be able to be called again.
  *
  * @see {@link cacheGate}
  * @see {@link justPass}

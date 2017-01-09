@@ -8,11 +8,11 @@ const verify = (item, str) => {
   }
 };
 
-// takes an array and tranforms it into a queue like array
-// be subcribed to from the scheduling Observable.
+// takes an array and transforms it into a queue like array
+// be subscribed to from the scheduling Observable.
 /**
  * When using schQ, you will write a preprocess function. If you are
- * completely satified with your sequence and do not wish to create 
+ * completely satisfied with your sequence and do not wish to create 
  * further consistency just return your sequence.
  *
  * @param {Array} arr
