@@ -157,8 +157,9 @@ const baseSetting = {
  * @example
  * // initialize SchQ
  * let config = {
- *    // schQ intentionally loses data but if you need to test what that 
- *    // data is, set this to a the amount of history you wish to track
+ *    // schQ intentionally discards data when application state changes 
+ *    // set lost data to the number of history items if you wish to track
+ *    // that discarded data.
  *    lostData : 0,
  *    // a function to make a consistent array
  *    preprocess: (array) => {...do something},
@@ -180,10 +181,11 @@ const baseSetting = {
  * subscriber
  *   .subscribe(packet => {
  *     let {message, next, emitter} = packet;
- *     let {key} = message;
+ *     // key is 'data'
+ *     // previous is any data returned from events if not the first event
+ *     let {key, previous} = message;
  *     next.forEach(operationThen => {
- *       // key is 'data'
- *       operationThen(emitter.emit({key}));
+ *       operationThen( previous, emitter.emit({key}) );
  *     });
  *   });
  */
@@ -251,9 +253,15 @@ class SchQ{
 
   /**
    * SchQ.run:
-   *  The subscribe of the pipeline
+   *  creates the Observable scheduler sequence
    *
-   * @return {Observable}
+   * @return {Observable} Observable on which to subscribe
+   * @property {Object} message - object of event key and previous events
+   * @property {Object} message.key - key emitter is listening if on
+   * @property {(Array|undefined)} message.previous - an array of previous 
+   *   events if not the first event, else undefined
+   * @property {Object} next - the operation to perform
+   * @property {Emitter} emitter - for emit
    */
   run() {
     return this._loadSubject

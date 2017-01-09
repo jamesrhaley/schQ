@@ -63,39 +63,33 @@ describe('SchQ', () => {
     
     schQ
       .run()
-      .subscribe(
-        packet => {
-          let {
-            message, 
-            next
-            //emitter
-          } = packet;
+      .subscribe( 
+        (packet) => {
+          let { message, next } = packet;
+          let { key, previous } = message;
 
           count++;
 
-          let {key} = message;
-          // console.log('after all', emitter.subjects['$'+key].observers)
-          //console.log(emitter.hasObserver(key));
-          if (message.key === 'process1' && count === 2) {
+          if ( key === 'process1' && count === 2 ) {
             run(++i);
           }
 
-          if (count === 3) {
+          if ( count === 3 ) {
             midObservers = schQ.emitter().listSubjects();
           }
 
-          if (count === 9) {
+          if ( count === 9 ) {
             endObservers = schQ.emitter().listSubjects();
           }
 
           pushResults(key);
 
-          if (message.events) {
+          if (previous) {
 
-            numberState += message.events.length;
+            numberState += previous.length;
           }
 
-          passedData.push(message.events);
+          passedData.push(previous);
 
           next.forEach(fn => {
 
