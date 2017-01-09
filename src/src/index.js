@@ -181,9 +181,9 @@ const baseSetting = {
  *   .subscribe(packet => {
  *     let {message, next, emitter} = packet;
  *     let {key} = message;
- *     data.forEach(item => {
+ *     next.forEach(operationThen => {
  *       // key is 'data'
- *       item(emitter.emit({key}));
+ *       operationThen(emitter.emit({key}));
  *     });
  *   });
  */
