@@ -73,7 +73,7 @@ export function waitAndListen(emitter, times, key) {
 }
 
 /**
- * When using schQ, you will write a last which is an array of what you
+ * When using schQ, you will write a last, which is an array of what you
  * wish to happen after your sequence completes.  The default is a noop
  * ```
  * const last = [[() => {} ]];
@@ -88,10 +88,10 @@ export function waitAndListen(emitter, times, key) {
 export const doLast = [[() => {} ]];
 
 /**
- * When using schQ, you will write a checkout function which is a function to 
- * count how many opperations will be performed before the next stage of 
- * sequence push to be performed. The default just gets the length of an 
- * array.
+ * When using schQ, you will write a checkout function, which is a 
+ * function to count how many opperations will be performed before the 
+ * next stage of the sequence push is to be performed. The default returns
+ * the length of an array.
  * ```
  * const checkout = (arr) => arr.length;
  * ```
@@ -106,7 +106,7 @@ export const checkout = (arr) => arr.length;
 
 /**
  * runInOrder:
- *  creates a pipeline of queued data and subcribe events
+ *  creates a pipeline of queued data and subscribe events
  *  and data returned from those subscribed events. Data is 
  *  delayed until event messages say the last actions have
  *  been performed
@@ -116,8 +116,6 @@ export const checkout = (arr) => arr.length;
  * @param {Function} getLen - how to get the length of each Object
  * @return {Function} 
  */
- // I still believe I should be using Observable.create here.
- // I should revist to test for memory leaks
 export function runInOrder(last, getLen){
   last = typeof last !== 'undefined' ? last : doLast;
 
@@ -148,7 +146,7 @@ const baseSetting = {
 
 
 /**
- * SchQ is an event scheduling pipeline that I’ve created to schedule d3
+ * SchQ is an event-scheduling pipeline that I’ve created to schedule d3
  * animations.  It can also be used for preforming the same operation in
  * any other sequence where controlling the order of events needs to be
  * automatically canceled when the state of the application has changed.
@@ -238,7 +236,7 @@ class SchQ{
 
   /**
    * SchQ.loader:
-   *  pushes data to the pipline and gives the event listener 
+   *  pushes data to the pipeline and gives the event listener 
    *  a key to listen on.
    *
    * @param {Array} next - an Array of Arrays that pushes each

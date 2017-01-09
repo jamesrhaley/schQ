@@ -2,17 +2,6 @@ import Rx from 'rx';
 
 const Observable = Rx.Observable;
 
-/** recreated hasObservers to mod to v5 */
-// if (!Rx.Subject.prototype.hasObservers) {
-//   Rx.Subject.prototype.hasObservers = function hasObservers() {
-//     if (this.isUnsubscribed) {
-//       throw new Rx.ObjectUnsubscribedError();
-//     }
-
-//     return this.observers.length > 0;
-//   };
-// }
-
 /**
  * eventListener:
  *  encapsulates Emitter into an event listener using Rx.fromEventPattern
@@ -61,7 +50,7 @@ export function stageStream(queueStream, listenerStream) {
  * @param {Observable} schQstream -> a stream of events
  * @param {Emitter} emitter -> An event Listener
  * @param {String} key -> key which data is being emitted on
- * @param {Function} getLen -> a count of the number of opperation to 
+ * @param {Function} getLen -> a count of the number of operations to 
  *   listen for till next the stage is push.
  */
 export function stager(schQstream, emitter, key, getLen) {
