@@ -106,30 +106,22 @@ describe('the wait', () => {
 
     let gate = beforeThenAfter(func1, func2);
 
-    let redResult = gate(copy1, copy1, verify);
-
-    copy1.inc = 5;
-
-    let blueResult = gate(copy1, copy1, verify);
-    let blueResult2 = gate(copy1, copy1, verify);
-
-    // lets reset
-    let copy2 = Object.assign({}, testObj);
-  
-    gate = beforeThenAfter(func1, func2);
-
-    let redAfterReset = gate(copy2, copy2, verify);  
-
-    let contiuneBeingRed = gate(copy2, copy2, verify);
-
     it('Gate Should be a function', () => {
       expect( isFunction(gate) ).to.be.true;
     });
+
+
+    let redResult = gate(copy1, copy1, verify);
 
     it('redResult should be red', () => {
 
       expect( redResult ).to.equal( 'red' );
     });
+
+
+    copy1.inc = 5;
+    let blueResult = gate(copy1, copy1, verify);
+    let blueResult2 = gate(copy1, copy1, verify);
 
     it('blueResult should be blue', () => {
 
@@ -141,10 +133,19 @@ describe('the wait', () => {
       expect( blueResult2 ).to.equal( 'blue' );
     });
 
+
+    // lets reset
+    let copy2 = Object.assign({}, testObj); 
+    gate = beforeThenAfter(func1, func2);
+    let redAfterReset = gate(copy2, copy2, verify); 
+
     it('redAfterReset should be red', () => {
 
       expect( redAfterReset ).to.equal( 'red' );
     });
+
+
+    let contiuneBeingRed = gate(copy2, copy2, verify);
 
     it('and if state doesn`t change it should still be red', () => {
 

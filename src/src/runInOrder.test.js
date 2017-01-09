@@ -34,9 +34,10 @@ describe('runInOrder', function () {
 
     arrFrom.subscribe((x) => {
       let {next, message} = x;
+      let {previous} = message;
 
-      if (message.hasOwnProperty('events')) {
-        allEvents.push(message.events);
+      if (previous) {
+        allEvents.push(previous);
       }
 
       next.forEach(fn => {
